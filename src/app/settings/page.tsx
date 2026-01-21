@@ -181,7 +181,7 @@ export default function SettingsPage() {
     ];
 
     const isVisible = (tabId: string) => {
-        if (tabId === 'usuarios') return userRole === 'ADMIN';
+        if (tabId === 'usuarios') return userRole?.toUpperCase() === 'ADMIN';
         return true;
     };
 
@@ -230,6 +230,24 @@ export default function SettingsPage() {
                                         className="w-full bg-slate-50/50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 py-4 px-6 rounded-2xl outline-none focus:border-primary font-black text-sm text-slate-900 dark:text-white transition-all shadow-inner"
                                         placeholder="Seu nome completo"
                                     />
+                                </div>
+
+                                <div className="space-y-4">
+                                    <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] ml-1">Status de Acesso</label>
+                                    <div className="p-4 bg-slate-50/50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <Shield size={16} className={cn(userRole?.toUpperCase() === 'ADMIN' ? "text-amber-500" : "text-slate-400")} />
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{userRole === 'ADMIN' ? 'Administrador Master' : 'Usuário Padrão'}</span>
+                                        </div>
+                                        {userRole !== 'ADMIN' && (
+                                            <button
+                                                onClick={() => alert(`Siga estes passos no Supabase:\n\n1. Vá em SQL Editor\n2. Cole: UPDATE profiles SET role = 'ADMIN' WHERE email = 'seu_email';\n3. Clique em RUN.`)}
+                                                className="text-[8px] font-black text-primary hover:underline uppercase tracking-tighter"
+                                            >
+                                                Como ser Admin?
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
 
                                 <div className="space-y-4">
