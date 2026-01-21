@@ -102,27 +102,55 @@ export default function Dashboard() {
   };
 
   const exportToXLSX = () => {
-    if (transactions.length === 0) return;
+    if (transactions.length === 0) {
+      alert("Sem dados para exportar.");
+      return;
+    }
 
-    const worksheetData = transactions.map(t => {
-      // Manual parsing to avoid Date object timezone shifts
+    const workbook = XLSX.utils.book_new();
+
+    // Group transactions by Month/Year
+    const groups: Record<string, any[]> = {};
+
+    transactions.forEach(t => {
+      const parts = t.date.split('-');
+      const monthLabel = format(new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, 1), "MMMM_yyyy", { locale: ptBR }).toUpperCase();
+
+      if (!groups[monthLabel]) groups[monthLabel] = [];
+
       const [yearStr, monthStr, dayStr] = t.date.split('-');
-      const formattedDate = `${dayStr}/${monthStr}/${yearStr}`;
-
-      return {
-        "DATA": formattedDate,
+      groups[monthLabel].push({
+        "DIA": dayStr,
+        "DATA COMPLETA": `${dayStr}/${monthStr}/${yearStr}`,
         "CATEGORIA": t.category.toUpperCase(),
-        "DESCRIÇÃO": t.description || "N/A",
+        "DESCRIÇÃO": t.description || "Geral",
         "TIPO": t.type === "INCOME" ? "ENTRADA" : "SAÍDA",
-        "VALOR (R$)": t.amount,
+        "VALOR": t.amount,
         "STATUS": t.paid ? "LIQUIDADO" : "PENDENTE"
-      };
+      });
     });
 
-    const worksheet = XLSX.utils.json_to_sheet(worksheetData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Backup Geral");
-    XLSX.writeFile(workbook, `XFinance_Backup_Geral_${new Date().getTime()}.xlsx`);
+    // Create a sheet for each month
+    Object.keys(groups).sort().reverse().forEach(label => {
+      const data = groups[label].sort((a, b) => parseInt(b.DIA) - parseInt(a.DIA));
+      const worksheet = XLSX.utils.json_to_sheet(data);
+
+      // Basic aesthetic sizing
+      const wscols = [
+        { wch: 6 },  // DIA
+        { wch: 15 }, // DATA COMPLETA
+        { wch: 20 }, // CATEGORIA
+        { wch: 35 }, // DESCRIÇÃO
+        { wch: 12 }, // TIPO
+        { wch: 15 }, // VALOR
+        { wch: 15 }  // STATUS
+      ];
+      worksheet['!cols'] = wscols;
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, label.slice(0, 31)); // Limit 31 chars for sheet name
+    });
+
+    XLSX.writeFile(workbook, `XFINANCE_RELATORIO_ESTRUTURADO.xlsx`);
   };
 
   // Helper to get month from string 'YYYY-MM-DD'

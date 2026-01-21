@@ -5,6 +5,9 @@ import { User, Database, Shield, Moon, Sun, Trash2, Download, Upload, CheckCircl
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import * as XLSX from "xlsx";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 interface XUser {
     id: string;
@@ -133,22 +136,43 @@ export default function SettingsPage() {
             .eq('user_id', session.user.id)
             .order('date', { ascending: false });
 
-        if (error) {
-            alert("Erro ao gerar backup: " + error.message);
+        if (error || !data) {
+            alert("Erro ao gerar backup: " + (error?.message || "Sem dados"));
             return;
         }
 
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `xfinance_backup_nuvem_${new Date().toISOString().split('T')[0]}.json`;
-        link.click();
-        URL.revokeObjectURL(url);
+        // Elegant grouping for Backup too
+        const workbook = XLSX.utils.book_new();
+        const groups: Record<string, any[]> = {};
+
+        data.forEach(t => {
+            const parts = t.date.split('-');
+            const monthLabel = format(new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, 1), "MMMM_yyyy", { locale: ptBR }).toUpperCase();
+            if (!groups[monthLabel]) groups[monthLabel] = [];
+
+            const [yearStr, monthStr, dayStr] = t.date.split('-');
+            groups[monthLabel].push({
+                "DIA": dayStr,
+                "DATA COMPLETA": `${dayStr}/${monthStr}/${yearStr}`,
+                "CATEGORIA": t.category.toUpperCase(),
+                "DESCRIÇÃO": t.description || "Geral",
+                "TIPO": t.type === "INCOME" ? "ENTRADA" : "SAÍDA",
+                "VALOR": t.amount,
+                "STATUS": t.paid ? "LIQUIDADO" : "PENDENTE"
+            });
+        });
+
+        Object.keys(groups).sort().reverse().forEach(label => {
+            const worksheet = XLSX.utils.json_to_sheet(groups[label]);
+            worksheet['!cols'] = [{ wch: 6 }, { wch: 15 }, { wch: 20 }, { wch: 35 }, { wch: 12 }, { wch: 15 }, { wch: 15 }];
+            XLSX.utils.book_append_sheet(workbook, worksheet, label.slice(0, 31));
+        });
+
+        XLSX.writeFile(workbook, `XFINANCE_BACKUP_TOTAL_${session.user.id.slice(0, 5)}.xlsx`);
     };
 
     const handleRestore = () => {
-        alert("A restauração via arquivo está desativada por segurança. Seus dados são sincronizados automaticamente na nuvem Supabase. Para importação em massa, contate o administrador.");
+        alert("SISTEMA DE SEGURANÇA: Sua base está protegida na nuvem. A restauração manual via JSON foi desativada para evitar conflitos de sincronização entre dispositivos.");
     };
 
     const tabs = [
@@ -255,11 +279,13 @@ export default function SettingsPage() {
                                 </div>
                                 <button
                                     onClick={() => {
-                                        alert("Incentive os novos membros a se registrarem na tela de login. Após o cadastro inicial, você poderá ajustar os privilégios deles aqui no painel de equipe.");
+                                        const url = window.location.origin + "/login";
+                                        navigator.clipboard.writeText(url);
+                                        alert("Link de registro copiado: " + url + "\n\nEnvie este link para o novo membro se cadastrar. Após o cadastro, você poderá promovê-lo a ADMIN aqui.");
                                     }}
-                                    className="hidden md:flex items-center gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-5 py-3 rounded-xl font-black text-[9px] uppercase tracking-widest hover:scale-105 transition-all"
+                                    className="hidden md:flex items-center gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-5 py-3 rounded-xl font-black text-[9px] uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-white/5"
                                 >
-                                    <UserPlus size={14} /> Novo Membro
+                                    <UserPlus size={14} strokeWidth={3} /> Convite Rápido
                                 </button>
                             </div>
 
