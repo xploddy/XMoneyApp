@@ -1,21 +1,15 @@
 @import "tailwindcss";
 
 @theme {
-  /* Ultra-modern Fintech Palette */
+  /* Ultra-modern Fintech Palette - FORCED DARK ONLY */
   --color-primary: #0066FF;
-  /* Electric Blue */
   --color-primary-dark: #0052CC;
   --color-secondary: #7000FF;
-  /* Deep Purple */
   --color-success: #00C853;
-  /* Vibrant Emerald */
   --color-danger: #FF3D00;
-  /* Bright Coral Red */
   --color-warning: #FFAB00;
-  /* Amber */
-  --color-surface: #FFFFFF;
-  --color-surface-dark: #12141A;
-  /* Rich Black */
+  --color-surface: #0B0F17;
+  --color-surface-dark: #020617;
 
   --radius-xl: 1rem;
   --radius-2xl: 1.5rem;
@@ -23,15 +17,7 @@
 }
 
 :root {
-  --background: #FFFFFF;
-  --foreground: #0F172A;
-  --card-bg: #F8FAFC;
-  --card-border: #E2E8F0;
-  --muted: #64748B;
-  --accent: #F1F5F9;
-}
-
-.dark {
+  /* Forced Dark Colors even as Root */
   --background: #0B0F17;
   --foreground: #F8FAFC;
   --card-bg: #161B26;
@@ -41,32 +27,24 @@
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: #0B0F17 !important;
+  color: #F8FAFC !important;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
-  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 @layer utilities {
   .premium-card {
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+    background: #161B26;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .premium-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
-    border-color: var(--color-primary);
-  }
-
-  .glass {
-    background: rgba(var(--card-bg), 0.7);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--card-border);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    border-color: #0066FF;
   }
 
   .text-gradient {

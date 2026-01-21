@@ -248,34 +248,36 @@ export default function Dashboard() {
                   <div
                     key={transaction.id}
                     onClick={() => openEdit(transaction)}
-                    className="premium-card p-5 rounded-2xl flex items-center justify-between group cursor-pointer bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800"
+                    className="premium-card p-5 rounded-2xl flex items-center justify-between group cursor-pointer bg-slate-900/50 border border-white/5 hover:border-primary/50 transition-all"
                   >
                     <div className="flex items-center gap-4">
                       <div className={cn(
-                        "w-12 h-12 rounded-xl flex items-center justify-center transition-all group-hover:scale-105 shadow-sm",
-                        transaction.type === 'INCOME' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10' : 'bg-rose-50 text-rose-600 dark:bg-rose-500/10'
+                        "w-12 h-12 rounded-xl flex items-center justify-center transition-all group-hover:scale-105 shadow-lg",
+                        transaction.type === 'INCOME' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'
                       )}>
                         <Icon size={22} />
                       </div>
                       <div>
-                        <h4 className="font-black text-base text-slate-900 dark:text-white leading-tight">{transaction.category}</h4>
-                        <p className="text-[10px] text-slate-400 font-bold mt-0.5 uppercase tracking-widest truncate max-w-[120px]">{transaction.description || 'Geral'}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-[10px] text-primary font-black uppercase tracking-wider">
+                            {format(new Date(transaction.date), "dd/MM")}
+                          </p>
+                          <h4 className="font-black text-base text-white leading-tight">{transaction.category}</h4>
+                        </div>
+                        <p className="text-[10px] text-slate-500 font-bold mt-0.5 uppercase tracking-widest truncate max-w-[150px]">{transaction.description || 'Geral'}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">
-                        {format(new Date(transaction.date), "dd/MM/yyyy")}
-                      </p>
                       <p className={cn(
                         "font-black text-lg tracking-tighter",
-                        transaction.type === 'INCOME' ? 'text-emerald-500' : 'text-slate-900 dark:text-white'
+                        transaction.type === 'INCOME' ? 'text-emerald-500' : 'text-white'
                       )}>
                         {transaction.type === 'INCOME' ? '+' : '-'} {transaction.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                       </p>
                       <div className="flex items-center justify-end gap-2 mt-1">
                         <span className={cn(
                           "text-[8px] px-2 py-0.5 rounded-md font-black uppercase tracking-[0.1em]",
-                          transaction.paid ? "bg-emerald-500 text-white" : "bg-amber-100 text-amber-600 dark:bg-amber-500/10 dark:text-amber-500"
+                          transaction.paid ? "bg-emerald-500 text-white" : "bg-amber-500/10 text-amber-500"
                         )}>
                           {transaction.paid ? 'Confirmado' : 'Pendente'}
                         </span>
