@@ -20,6 +20,7 @@ interface XUser {
 export default function SettingsPage() {
     const [theme, setTheme] = useState("system");
     const [name, setName] = useState("Usuário");
+    const [budgetGoal, setBudgetGoal] = useState("");
     const [isSaved, setIsSaved] = useState(false);
     const [activeTab, setActiveTab] = useState("perfil");
     const [users, setUsers] = useState<XUser[]>([]);
@@ -51,6 +52,9 @@ export default function SettingsPage() {
             const savedTheme = localStorage.getItem("xmoney_theme") || "system";
             setTheme(savedTheme);
             applyTheme(savedTheme);
+
+            const savedBudget = localStorage.getItem("xmoney_budget_goal") || "";
+            setBudgetGoal(savedBudget);
 
             // Fetch Team Profiles (only for admins)
             if (profile?.role === "ADMIN") {
@@ -99,6 +103,7 @@ export default function SettingsPage() {
             .eq('id', session.user.id);
 
         localStorage.setItem("xmoney_theme", theme);
+        localStorage.setItem("xmoney_budget_goal", budgetGoal);
         applyTheme(theme);
 
         if (!error) {
@@ -162,21 +167,103 @@ export default function SettingsPage() {
                 "DESCRIÇÃO": t.description || "Geral",
                 "TIPO": t.type === "INCOME" ? "ENTRADA" : "SAÍDA",
                 "VALOR": t.amount,
-                "STATUS": t.paid ? "LIQUIDADO" : "PENDENTE"
+                "STATUS": t.paid ? "LIQUIDADO" : "PENDENTE",
+                "RAW_DATA": JSON.stringify(t) // Hidden column for restoration
             });
         });
 
         Object.keys(groups).sort().reverse().forEach(label => {
             const worksheet = XLSX.utils.json_to_sheet(groups[label]);
-            worksheet['!cols'] = [{ wch: 6 }, { wch: 15 }, { wch: 20 }, { wch: 35 }, { wch: 12 }, { wch: 15 }, { wch: 15 }];
+            worksheet['!cols'] = [{ wch: 6 }, { wch: 15 }, { wch: 20 }, { wch: 35 }, { wch: 12 }, { wch: 15 }, { wch: 15 }, { wch: 0 }]; // Last col hidden
             XLSX.utils.book_append_sheet(workbook, worksheet, label.slice(0, 31));
         });
 
-        XLSX.writeFile(workbook, `XFINANCE_BACKUP_TOTAL_${session.user.id.slice(0, 5)}.xlsx`);
+        XLSX.writeFile(workbook, `XFINANCE_BACKUP_${session.user.id.slice(0, 5)}_${format(new Date(), "dd-MM-yyyy")}.xlsx`);
     };
 
-    const handleRestore = () => {
-        alert("SISTEMA DE SEGURANÇA: Sua base está protegida na nuvem. A restauração manual via JSON foi desativada para evitar conflitos de sincronização entre dispositivos.");
+    const handleRestore = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+
+        const reader = new FileReader();
+        reader.onload = async (evt) => {
+            try {
+                const bstr = evt.target?.result;
+                const workbook = XLSX.read(bstr, { type: 'binary' });
+                let processedCount = 0;
+
+                const transactionsToUpsert: any[] = [];
+
+                for (const sheetName of workbook.SheetNames) {
+                    const worksheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet) as any[];
+
+                    jsonData.forEach(row => {
+                        // 1. Recover ID from RAW_DATA if exists
+                        let id = undefined;
+                        if (row["RAW_DATA"]) {
+                            try {
+                                const raw = JSON.parse(row["RAW_DATA"]);
+                                id = raw.id;
+                            } catch { }
+                        }
+
+                        // 2. Parse Visible Columns (Allowing user edits in Excel)
+                        // Date parsing: Expecting DD/MM/YYYY from Excel or fallback
+                        let dateISO = new Date().toISOString().split('T')[0];
+                        if (row["DATA COMPLETA"]) {
+                            const parts = row["DATA COMPLETA"].toString().split('/');
+                            if (parts.length === 3) dateISO = `${parts[2]}-${parts[1]}-${parts[0]}`;
+                        } else if (row["DATA"]) {
+                            dateISO = row["DATA"];
+                        }
+
+                        const amount = parseFloat(row["VALOR"]) || 0;
+                        const description = row["DESCRIÇÃO"] || "";
+                        const category = row["CATEGORIA"] || "Outros";
+                        const type = (row["TIPO"] === "ENTRADA") ? "INCOME" : "EXPENSE";
+                        const paid = (row["STATUS"] === "LIQUIDADO");
+
+                        // 3. Build Transaction Object
+                        const transaction = {
+                            ...(id ? { id } : {}), // Only include ID if found
+                            user_id: session.user.id,
+                            date: dateISO,
+                            amount,
+                            description,
+                            category,
+                            type,
+                            paid
+                        };
+
+                        transactionsToUpsert.push(transaction);
+                    });
+                }
+
+                if (transactionsToUpsert.length > 0) {
+                    // Upsert: Updates if ID exists, Inserts if not
+                    const { error } = await supabase.from('transactions').upsert(transactionsToUpsert);
+
+                    if (error) {
+                        console.error("Upsert error:", error);
+                        alert("Erro na sincronização: " + error.message);
+                        return;
+                    }
+                    processedCount = transactionsToUpsert.length;
+                }
+
+                alert(`Sincronização Inteligente Concluída!\n\n✅ ${processedCount} registros processados.\n(Dados atualizados da planilha foram salvos no sistema)`);
+                window.location.reload();
+
+            } catch (error) {
+                console.error(error);
+                alert("Erro ao processar arquivo. Verifique o formato.");
+            }
+        };
+        reader.readAsBinaryString(file);
     };
 
     const tabs = [
@@ -187,13 +274,24 @@ export default function SettingsPage() {
 
     return (
         <div className="max-w-4xl mx-auto space-y-10 py-10 px-4 md:px-6 animate-in fade-in duration-700 pb-32">
-            <header className="space-y-1">
-                <h1 className="text-4xl font-black tracking-tighter text-slate-900 dark:text-white">Ajustes Profissionais</h1>
-                <p className="text-slate-500 font-bold text-[10px] tracking-widest uppercase">Gerenciamento de Ativos e Acessos</p>
+            <header className="flex items-center justify-between">
+                <div className="space-y-1">
+                    <h1 className="text-4xl font-black tracking-tighter text-slate-900 dark:text-white">Ajustes</h1>
+                    <p className="text-slate-500 font-bold text-[10px] tracking-widest uppercase">Gerenciamento de Ativos e Acessos</p>
+                </div>
+                <button
+                    onClick={async () => {
+                        await supabase.auth.signOut();
+                        router.push('/login');
+                    }}
+                    className="flex items-center gap-2 px-5 py-3 bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-500 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-rose-100 dark:hover:bg-rose-500/20 transition-all border border-rose-100 dark:border-rose-900/20"
+                >
+                    <LogOut size={16} strokeWidth={3} /> Sair
+                </button>
             </header>
 
             <div className="bg-slate-50 dark:bg-slate-900/50 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800 flex gap-2 overflow-x-auto scrollbar-hide">
-                {tabs.filter(t => t.id === 'perfil' || userRole?.toUpperCase() === 'ADMIN').map((tab) => (
+                {tabs.filter(t => t.id !== 'usuarios' || userRole?.toUpperCase() === 'ADMIN').map((tab) => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
@@ -230,6 +328,20 @@ export default function SettingsPage() {
                                         className="w-full bg-slate-50/50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 py-4 px-6 rounded-2xl outline-none focus:border-primary font-black text-sm text-slate-900 dark:text-white transition-all shadow-inner"
                                         placeholder="Seu nome completo"
                                     />
+                                </div>
+
+                                <div className="space-y-2.5">
+                                    <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] ml-1">Meta de Gastos Mensal</label>
+                                    <div className="relative group">
+                                        <span className="absolute left-6 top-1/2 -translate-y-1/2 font-black text-slate-300">R$</span>
+                                        <input
+                                            type="number"
+                                            value={budgetGoal}
+                                            onChange={(e) => setBudgetGoal(e.target.value)}
+                                            className="w-full bg-slate-50/50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 py-4 pl-12 pr-6 rounded-2xl outline-none focus:border-primary font-black text-sm text-slate-900 dark:text-white transition-all shadow-inner"
+                                            placeholder="0.00"
+                                        />
+                                    </div>
                                 </div>
 
                                 <div className="space-y-4">
@@ -347,15 +459,15 @@ export default function SettingsPage() {
                                 <button onClick={handleBackup} className="flex flex-col items-center justify-center gap-5 p-10 border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-3xl group hover:border-primary transition-all bg-slate-50/50 dark:bg-slate-950/20">
                                     <Download size={36} className="text-slate-300 group-hover:text-primary transition-all transform group-hover:-translate-y-1" />
                                     <div className="text-center">
-                                        <p className="font-black text-xs uppercase tracking-[0.2em] text-slate-900 dark:text-white">Exportar Backup</p>
-                                        <p className="text-[8px] text-slate-400 font-bold uppercase mt-1 tracking-widest">Protocolo JSON Decriptografado</p>
+                                        <p className="font-black text-xs uppercase tracking-[0.2em] text-slate-900 dark:text-white">Exportar Planilha</p>
+                                        <p className="text-[8px] text-slate-400 font-bold uppercase mt-1 tracking-widest">Backup Completo (.XLSX)</p>
                                     </div>
                                 </button>
                                 <button onClick={() => fileInputRef.current?.click()} className="flex flex-col items-center justify-center gap-5 p-10 border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-3xl group hover:border-emerald-500 transition-all bg-slate-50/50 dark:bg-slate-950/20">
                                     <Upload size={36} className="text-slate-300 group-hover:text-emerald-500 transition-all transform group-hover:-translate-y-1" />
                                     <div className="text-center">
-                                        <p className="font-black text-xs uppercase tracking-[0.2em] text-slate-900 dark:text-white">Importar Protocolo</p>
-                                        <p className="text-[8px] text-slate-400 font-bold uppercase mt-1 tracking-widest">Sincronização de Dados Brutal</p>
+                                        <p className="font-black text-xs uppercase tracking-[0.2em] text-slate-900 dark:text-white">Importar Lançamentos</p>
+                                        <p className="text-[8px] text-slate-400 font-bold uppercase mt-1 tracking-widest">Restaurar via Excel</p>
                                     </div>
                                     <input type="file" ref={fileInputRef} onChange={handleRestore} className="hidden" />
                                 </button>

@@ -6,7 +6,7 @@ import SummaryCards from "@/components/dashboard/SummaryCards";
 import TransactionForm from "@/components/transactions/TransactionForm";
 import CategoryChart, { CHART_COLORS } from "@/components/dashboard/CategoryChart";
 import { Plus, Calendar, Zap, ChevronRight, LayoutDashboard, Coffee, Home, Car, Heart, Briefcase, HelpCircle, ShoppingCart, ArrowRight, Table } from "lucide-react";
-import { format } from "date-fns";
+import { format, addMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import * as XLSX from "xlsx";
@@ -73,30 +73,83 @@ export default function Dashboard() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
 
-    const { id, ...cleanData } = data;
-    const transactionData = {
+    const { id, installments, ...cleanData } = data;
+    const baseTransaction = {
       ...cleanData,
       user_id: session.user.id
     };
 
-    const { error } = id
-      ? await supabase.from('transactions').update(transactionData).eq('id', id)
-      : await supabase.from('transactions').insert([transactionData]);
+    if (id) {
+      // Update existing transaction (single edit)
+      const { error } = await supabase.from('transactions').update(baseTransaction).eq('id', id);
+      if (error) { console.error(error); alert("Erro ao atualizar: " + error.message); return; }
+    } else {
+      // Creates new transaction(s)
+      const transactionsToInsert = [];
+      const count = (installments && installments > 1) ? installments : 1;
 
-    if (error) {
-      console.error("Save Error:", error);
-      alert("Erro ao salvar: " + error.message);
-      return;
+      const [y, m, d] = baseTransaction.date.split('-').map(Number);
+      const startDate = new Date(y, m - 1, d);
+
+      for (let i = 0; i < count; i++) {
+        const nextDate = addMonths(startDate, i);
+
+        transactionsToInsert.push({
+          ...baseTransaction,
+          date: format(nextDate, 'yyyy-MM-dd'),
+          description: count > 1 ? `${baseTransaction.description} (${i + 1}/${count})` : baseTransaction.description
+        });
+      }
+
+      const { error } = await supabase.from('transactions').insert(transactionsToInsert);
+      if (error) { console.error(error); alert("Erro ao salvar: " + error.message); return; }
     }
 
     fetchTransactions(session.user.id);
     setIsFormOpen(false);
   };
 
-  const handleDeleteTransaction = async (id: string) => {
+  /* 
+   * Deleta transação e opcionalmente as futuras se for recorrente 
+   */
+  const handleDeleteTransaction = async (id: string, deleteFuture?: boolean) => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
-    await supabase.from('transactions').delete().eq('id', id);
+
+    if (deleteFuture) {
+      // 1. Get the transaction to be deleted to know its details
+      const { data: currentT } = await supabase.from('transactions').select('*').eq('id', id).single();
+
+      if (currentT && currentT.description) {
+        // 2. Extract pattern "Description (X/Y)"
+        // Logic: Base description is everything before the last " ("
+        const match = currentT.description.match(/^(.*) \(\d+\/\d+\)$/);
+
+        if (match) {
+          const baseDesc = match[1]; // "Aluguel"
+          // 3. Delete all transactions that start with this baseDesc AND have date >= currentT.date
+          // We use a filter on description pattern in SQL using 'like'
+          const { error } = await supabase
+            .from('transactions')
+            .delete()
+            .eq('user_id', session.user.id)
+            .ilike('description', `${baseDesc} (%`) // Match "Aluguel (%"
+            .gte('date', currentT.date); // Greater than or equal to this date
+
+          if (error) console.error("Error deleting future:", error);
+        } else {
+          // Fallback if regex fails but user wanted future deletion (maybe simple match?)
+          // Just delete the single one if pattern not found rigid
+          await supabase.from('transactions').delete().eq('id', id);
+        }
+      } else {
+        await supabase.from('transactions').delete().eq('id', id);
+      }
+    } else {
+      // Standard single delete
+      await supabase.from('transactions').delete().eq('id', id);
+    }
+
     fetchTransactions(session.user.id);
     setIsFormOpen(false);
   };

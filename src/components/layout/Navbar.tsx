@@ -33,7 +33,7 @@ export default function Navbar() {
                         <Wallet className="text-white w-6 h-6" />
                     </div>
                     <div>
-                        <span className="font-black text-xl tracking-tighter text-white uppercase block leading-none italic">XFINANCE</span>
+                        <span className="font-black text-xl tracking-tighter text-white uppercase block leading-none italic">XMoney</span>
                         <span className="text-[8px] font-black text-slate-500 tracking-[0.4em] uppercase mt-1 block">Private Asset Mgt.</span>
                     </div>
                 </Link>

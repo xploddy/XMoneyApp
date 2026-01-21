@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { List, Search, ArrowUpCircle, ArrowDownCircle, Trash2, Filter, Download, Table, Edit3, ArrowLeft, Clock, HelpCircle, Coffee, Zap, Home, Car, Heart, Briefcase, ShoppingCart } from "lucide-react";
+import { List, Search, ArrowUpCircle, ArrowDownCircle, Trash2, Filter, Download, Table, Edit3, ArrowLeft, Clock, HelpCircle, Coffee, Zap, Home, Car, Heart, Briefcase, ShoppingCart, Calendar } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -29,6 +29,11 @@ export default function TransactionsPage() {
     const [filterType, setFilterType] = useState<string>("ALL");
     const [editingTransaction, setEditingTransaction] = useState<any>(null);
     const [isFormOpen, setIsFormOpen] = useState(false);
+
+    // Filter States
+    const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+
     const router = useRouter();
 
     useEffect(() => {
@@ -88,7 +93,19 @@ export default function TransactionsPage() {
             const matchesSearch = t.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 (t.description && t.description.toLowerCase().includes(searchTerm.toLowerCase()));
             const matchesType = filterType === "ALL" || t.type === filterType;
-            return matchesSearch && matchesType;
+
+            // Date Filter
+            let matchesDate = true;
+            if (selectedMonth !== -1) {
+                const [y, m, d] = t.date.split('-').map(Number);
+                matchesDate = m === selectedMonth && y === selectedYear;
+            } else {
+                // If "All Months", still check year? Usually 'All months of 2024'.
+                const [y] = t.date.split('-').map(Number);
+                matchesDate = y === selectedYear;
+            }
+
+            return matchesSearch && matchesType && matchesDate;
         });
 
     const exportToXLSX = () => {
@@ -132,11 +149,11 @@ export default function TransactionsPage() {
 
             {/* Premium Search & Filter */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                <div className="lg:col-span-8 relative group">
+                <div className="lg:col-span-5 relative group">
                     <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-all" size={20} />
                     <input
                         type="text"
-                        placeholder="Buscar transação ou categoria..."
+                        placeholder="Buscar..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full bg-[#161B26] border border-white/5 py-4 pl-14 pr-6 rounded-2xl outline-none focus:border-primary/50 transition-all font-bold text-sm text-white placeholder:text-slate-600 shadow-inner"
@@ -162,6 +179,28 @@ export default function TransactionsPage() {
                             {type.label}
                         </button>
                     ))}
+                </div>
+
+                <div className="lg:col-span-3 relative group">
+                    <div className="absolute left-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 group-hover:text-primary transition-colors">
+                        <Calendar size={18} />
+                    </div>
+                    <input
+                        type="month"
+                        value={`${selectedYear}-${String(selectedMonth).padStart(2, '0')}`}
+                        onChange={(e) => {
+                            if (e.target.value) {
+                                const [y, m] = e.target.value.split('-');
+                                setSelectedYear(parseInt(y));
+                                setSelectedMonth(parseInt(m));
+                            } else {
+                                // Reset to current or handle empty? 
+                                // Native month input usually allows clear on some browsers, but let's just stick to value.
+                            }
+                        }}
+                        className="w-full bg-[#161B26] text-white font-black text-xs uppercase tracking-widest py-4 pl-12 pr-4 rounded-2xl border border-white/5 focus:border-primary/50 outline-none transition-all cursor-pointer shadow-inner appearance-none h-full"
+                        style={{ colorScheme: "dark" }}
+                    />
                 </div>
             </div>
 

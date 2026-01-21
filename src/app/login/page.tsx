@@ -97,7 +97,7 @@ export default function LoginPage() {
                     </div>
                     <div className="space-y-2">
                         <h1 className="text-5xl font-black tracking-[ -0.05em] text-slate-900 dark:text-white leading-none">
-                            X<span className="text-primary">Finance</span>
+                            X<span className="text-primary">Money</span>
                         </h1>
                         <p className="text-slate-400 dark:text-slate-500 font-black text-[10px] tracking-[0.5em] uppercase">Private Asset Management</p>
                     </div>
@@ -114,7 +114,7 @@ export default function LoginPage() {
                                     : "text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400"
                             )}
                         >
-                            Terminal
+                            Login
                         </button>
                         <button
                             onClick={() => setMode("signup")}
@@ -125,7 +125,7 @@ export default function LoginPage() {
                                     : "text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400"
                             )}
                         >
-                            Acesso
+                            Cadastro
                         </button>
                     </div>
 
@@ -175,7 +175,7 @@ export default function LoginPage() {
                                     <Loader2 className="animate-spin" size={22} />
                                 ) : (
                                     <>
-                                        <span className="text-[11px] tracking-[0.2em] uppercase">Autenticar Sistema</span>
+                                        <span className="text-[11px] tracking-[0.2em] uppercase">Entrar</span>
                                         <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                                     </>
                                 )}
@@ -189,7 +189,7 @@ export default function LoginPage() {
                                     <User className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors" size={18} />
                                     <input
                                         type="text" required value={name} onChange={(e) => setName(e.target.value)}
-                                        placeholder="Ex: Alexandre H."
+                                        placeholder="Ex: Alexandre S."
                                         className="w-full bg-slate-50 dark:bg-slate-950/50 border-2 border-slate-100 dark:border-white/5 rounded-[1.5rem] py-5 pl-16 pr-6 font-bold outline-none focus:border-primary/50 focus:bg-white dark:focus:bg-slate-950 transition-all text-slate-900 dark:text-white text-sm"
                                     />
                                 </div>
@@ -244,15 +244,11 @@ export default function LoginPage() {
                     )}
                 </div>
 
-                <div className="flex items-center justify-between px-6 opacity-40 hover:opacity-100 transition-opacity duration-500">
-                    <p className="text-[9px] text-slate-400 dark:text-slate-600 font-black tracking-widest uppercase">Encrypted Connection</p>
-                    <p className="text-[9px] text-slate-400 dark:text-slate-600 font-black tracking-widest uppercase text-right">v2.4.0-PRO</p>
+                <div className="flex items-center justify-between px-20 opacity-40 hover:opacity-100 transition-opacity duration-500">
+                    <p className="text-[9px] text-slate-400 dark:text-slate-600 font-black tracking-widest uppercase">Alexandre Silva copyright © 2026 - v2.4.0-PRO</p>
                 </div>
             </div>
 
-            <p className="absolute bottom-6 left-0 right-0 text-center text-slate-400 dark:text-slate-600 font-black text-[10px] uppercase tracking-widest opacity-20">
-                Sistema de Gestão de Ativos Privados v2.4 PRO
-            </p>
         </div>
     );
 }
