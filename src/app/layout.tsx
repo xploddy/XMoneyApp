@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -18,6 +18,9 @@ export const metadata: Metadata = {
   title: "XMoney - Gestão Financeira",
   description: "Gerencie suas finanças de forma simples e moderna",
   manifest: "/manifest.json",
+};
+
+export const viewport: Viewport = {
   themeColor: "#3b82f6",
 };
 

@@ -83,112 +83,138 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#FFFFFF] dark:bg-[#0B0F17] flex flex-col items-center justify-center p-6 relative overflow-hidden transition-colors duration-500">
-            {/* Background Decor - Pure Light and Pure Dark */}
-            <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-primary/[0.05] dark:bg-primary/[0.1] rounded-full blur-[120px]" />
-            <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-secondary/[0.05] dark:bg-secondary/[0.1] rounded-full blur-[120px]" />
+        <div className="min-h-screen bg-slate-50 dark:bg-[#020617] flex flex-col items-center justify-center p-6 relative overflow-hidden transition-all duration-700">
+            {/* Ambient Background - Gradient Blobs */}
+            <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-primary/10 dark:bg-primary/20 rounded-full blur-[120px] animate-pulse" />
+            <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] bg-indigo-500/10 dark:bg-indigo-500/10 rounded-full blur-[100px]" />
 
-            <div className="w-full max-w-md space-y-8 relative z-10 animate-in fade-in slide-in-from-bottom-5 duration-700">
-                <div className="text-center space-y-4">
-                    <div className="w-18 h-18 bg-primary mx-auto rounded-3xl flex items-center justify-center shadow-2xl shadow-primary/20 hover:rotate-6 transition-all duration-300">
-                        <Wallet className="text-white w-9 h-9" />
+            <div className="w-full max-w-[440px] space-y-8 relative z-10">
+                <div className="text-center space-y-6">
+                    <div className="inline-flex p-4 rounded-[2rem] bg-white dark:bg-slate-900 shadow-2xl shadow-primary/10 border border-slate-100 dark:border-white/5 group hover:scale-110 transition-all duration-500">
+                        <div className="w-14 h-14 bg-gradient-to-br from-primary to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg transform group-hover:rotate-12 transition-all">
+                            <Wallet className="text-white w-7 h-7" />
+                        </div>
                     </div>
-                    <div>
-                        <h1 className="text-4xl font-black tracking-tighter text-slate-900 dark:text-white uppercase leading-none">XFinance</h1>
-                        <p className="text-slate-400 dark:text-slate-500 font-bold text-[9px] tracking-[0.4em] uppercase mt-2">Private Asset Mgt.</p>
+                    <div className="space-y-2">
+                        <h1 className="text-5xl font-black tracking-[ -0.05em] text-slate-900 dark:text-white leading-none">
+                            X<span className="text-primary">Finance</span>
+                        </h1>
+                        <p className="text-slate-400 dark:text-slate-500 font-black text-[10px] tracking-[0.5em] uppercase">Private Asset Management</p>
                     </div>
                 </div>
 
-                <div className="p-8 md:p-10 rounded-[2.5rem] bg-white dark:bg-slate-900 shadow-2xl shadow-slate-200/50 dark:shadow-black/50 border border-slate-100 dark:border-slate-800 transition-all">
-                    <div className="flex mb-8 bg-slate-50 dark:bg-slate-950 p-1.5 rounded-2xl border border-slate-100 dark:border-slate-800">
+                <div className="group premium-card p-10 rounded-[3rem] bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] dark:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] border border-white dark:border-white/5 transition-all duration-500 hover:shadow-primary/5">
+                    <div className="flex mb-10 bg-slate-100/50 dark:bg-slate-950/50 p-1.5 rounded-[1.5rem] border border-slate-200/50 dark:border-white/5">
                         <button
                             onClick={() => setMode("login")}
                             className={cn(
-                                "flex-1 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all",
-                                mode === "login" ? "bg-white dark:bg-slate-800 text-primary shadow-md" : "text-slate-400 dark:text-slate-600"
+                                "flex-1 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all duration-300",
+                                mode === "login"
+                                    ? "bg-white dark:bg-slate-800 text-primary shadow-xl shadow-black/5 dark:shadow-none scale-100"
+                                    : "text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400"
                             )}
                         >
-                            Entrar
+                            Terminal
                         </button>
                         <button
                             onClick={() => setMode("signup")}
                             className={cn(
-                                "flex-1 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all",
-                                mode === "signup" ? "bg-white dark:bg-slate-800 text-primary shadow-md" : "text-slate-400 dark:text-slate-600"
+                                "flex-1 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all duration-300",
+                                mode === "signup"
+                                    ? "bg-white dark:bg-slate-800 text-primary shadow-xl shadow-black/5 dark:shadow-none scale-100"
+                                    : "text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400"
                             )}
                         >
-                            Registrar
+                            Acesso
                         </button>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        {mode === "signup" && (
-                            <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-                                <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Nome Completo</label>
-                                <div className="relative">
-                                    <User className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    {mode === "login" ? (
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            <div className="space-y-2.5">
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-4">Identificação</label>
+                                <div className="relative group">
+                                    <Mail className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors" size={18} />
                                     <input
-                                        type="text" required value={name} onChange={(e) => setName(e.target.value)}
-                                        placeholder="Identificação"
-                                        className="w-full bg-[#FFFFFF] dark:bg-[#0F172A] border-2 border-slate-100 dark:border-slate-800 rounded-2xl py-4 pl-14 pr-6 font-black outline-none focus:border-primary transition-all text-slate-900 dark:text-white text-sm placeholder:text-slate-200 dark:placeholder:text-slate-800"
+                                        type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+                                        placeholder="seu@email.com"
+                                        className="w-full bg-slate-50 dark:bg-slate-950/50 border-2 border-slate-100 dark:border-white/5 rounded-[1.5rem] py-5 pl-16 pr-6 font-bold outline-none focus:border-primary/50 focus:bg-white dark:focus:bg-slate-950 transition-all text-slate-900 dark:text-white text-sm"
                                     />
                                 </div>
                             </div>
-                        )}
 
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Acesso via E-mail</label>
-                            <div className="relative">
-                                <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                                <input
-                                    type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="gestor@xfinance.com"
-                                    className="w-full bg-[#FFFFFF] dark:bg-[#0F172A] border-2 border-slate-100 dark:border-slate-800 rounded-2xl py-4 pl-14 pr-6 font-black outline-none focus:border-primary transition-all text-slate-900 dark:text-white text-sm placeholder:text-slate-200 dark:placeholder:text-slate-800"
-                                />
+                            <div className="space-y-2.5">
+                                <div className="flex justify-between items-center ml-4">
+                                    <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Senha Criptografada</label>
+                                    <button type="button" className="text-[9px] font-black text-primary uppercase tracking-widest hover:underline">Reset</button>
+                                </div>
+                                <div className="relative group">
+                                    <Lock className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors" size={18} />
+                                    <input
+                                        type="password" required value={password} onChange={(e) => setPassword(e.target.value)}
+                                        placeholder="••••••••"
+                                        className="w-full bg-slate-50 dark:bg-slate-950/50 border-2 border-slate-100 dark:border-white/5 rounded-[1.5rem] py-5 pl-16 pr-6 font-bold outline-none focus:border-primary/50 focus:bg-white dark:focus:bg-slate-950 transition-all text-slate-900 dark:text-white text-sm"
+                                    />
+                                </div>
                             </div>
-                        </div>
 
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1 flex justify-between">
-                                Chave de Segurança
-                                {mode === "login" && <button type="button" className="text-primary hover:underline lowercase tracking-normal font-black">Esqueceu?</button>}
-                            </label>
-                            <div className="relative">
-                                <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                                <input
-                                    type="password" required value={password} onChange={(e) => setPassword(e.target.value)}
-                                    placeholder="••••••••"
-                                    className="w-full bg-[#FFFFFF] dark:bg-[#0F172A] border-2 border-slate-100 dark:border-slate-800 rounded-2xl py-4 pl-14 pr-6 font-black outline-none focus:border-primary transition-all text-slate-900 dark:text-white text-sm placeholder:text-slate-200 dark:placeholder:text-slate-800"
-                                />
-                            </div>
-                        </div>
-
-                        {error && (
-                            <p className="p-3 bg-rose-50 dark:bg-rose-500/10 border border-rose-100 dark:border-rose-900/20 text-rose-600 dark:text-rose-500 font-black text-[9px] uppercase tracking-widest text-center rounded-xl animate-in fade-in zoom-in-95 duration-300">
-                                {error}
-                            </p>
-                        )}
-
-                        <button
-                            disabled={isLoading}
-                            className="w-full bg-primary py-5 rounded-2xl font-black text-white shadow-2xl shadow-primary/30 flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-70 group"
-                        >
-                            {isLoading ? (
-                                <Loader2 className="animate-spin" size={20} />
-                            ) : (
-                                <>
-                                    <span className="text-[11px] tracking-[0.2em] uppercase">{mode === "login" ? "Entrar no Terminal" : "Finalizar Cadastro"}</span>
-                                    {mode === "login" ? <LogIn size={18} className="group-hover:translate-x-1 transition-transform" /> : <UserPlus size={18} className="group-hover:translate-x-1 transition-transform" />}
-                                </>
+                            {error && (
+                                <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-center gap-3 animate-in fade-in zoom-in-95 duration-300">
+                                    <p className="text-rose-500 font-black text-[10px] uppercase tracking-widest leading-relaxed">
+                                        {error}
+                                    </p>
+                                </div>
                             )}
-                        </button>
-                    </form>
+
+                            <button
+                                disabled={isLoading}
+                                className="w-full bg-gradient-to-r from-primary to-indigo-600 py-5 rounded-[1.5rem] font-black text-white shadow-2xl shadow-primary/20 flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 group overflow-hidden relative"
+                            >
+                                <div className="absolute inset-0 bg-white/20 transform translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                                {isLoading ? (
+                                    <Loader2 className="animate-spin" size={22} />
+                                ) : (
+                                    <>
+                                        <span className="text-[11px] tracking-[0.2em] uppercase">Autenticar Sistema</span>
+                                        <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                    </>
+                                )}
+                            </button>
+                        </form>
+                    ) : (
+                        <div className="space-y-8 py-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <div className="text-center space-y-3">
+                                <div className="w-16 h-16 bg-primary/10 dark:bg-primary/20 rounded-[2rem] flex items-center justify-center mx-auto text-primary">
+                                    <UserPlus size={32} />
+                                </div>
+                                <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Solicitação de Ativo</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 font-bold leading-relaxed px-4">
+                                    O XFinance é um terminal privado. Para obter acesso, contate o administrador do fundo para inclusão manual de credenciais.
+                                </p>
+                            </div>
+
+                            <div className="p-6 bg-slate-50 dark:bg-slate-950/50 rounded-2xl border border-slate-200 dark:border-white/5 space-y-4">
+                                <p className="text-[9px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-widest text-center">Protocolo de Segurança</p>
+                                <button
+                                    onClick={() => setMode("login")}
+                                    className="w-full py-4 rounded-xl border-2 border-slate-200 dark:border-white/10 text-slate-400 dark:text-slate-500 font-black text-[10px] uppercase tracking-widest hover:border-primary hover:text-primary transition-all"
+                                >
+                                    Voltar ao Login
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
-                <p className="text-center text-slate-400 dark:text-slate-600 font-black text-[10px] uppercase tracking-widest">
-                    Sistema de Gestão de Ativos Privados v2.0
-                </p>
+                <div className="flex items-center justify-between px-6 opacity-40 hover:opacity-100 transition-opacity duration-500">
+                    <p className="text-[9px] text-slate-400 dark:text-slate-600 font-black tracking-widest uppercase">Encrypted Connection</p>
+                    <p className="text-[9px] text-slate-400 dark:text-slate-600 font-black tracking-widest uppercase text-right">v2.4.0-PRO</p>
+                </div>
             </div>
+
+            <p className="absolute bottom-6 left-0 right-0 text-center text-slate-400 dark:text-slate-600 font-black text-[10px] uppercase tracking-widest opacity-20">
+                Sistema de Gestão de Ativos Privados v2.4 PRO
+            </p>
         </div>
     );
 }

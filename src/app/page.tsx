@@ -31,6 +31,7 @@ export default function Dashboard() {
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [year, setYear] = useState(new Date().getFullYear());
   const [userName, setUserName] = useState("Usuário");
+  const [userRole, setUserRole] = useState("USER");
   const router = useRouter();
 
   useEffect(() => {
@@ -40,7 +41,16 @@ export default function Dashboard() {
         router.push("/login");
         return;
       }
-      setUserName(session.user.user_metadata?.name || "Gestor");
+
+      // Fetch Profile for Role and Name
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('name, role')
+        .eq('id', session.user.id)
+        .single();
+
+      setUserName(profile?.name || session.user.user_metadata?.name || "Gestor");
+      setUserRole(profile?.role || "USER");
       fetchTransactions(session.user.id);
     };
 

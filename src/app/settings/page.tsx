@@ -20,6 +20,7 @@ export default function SettingsPage() {
     const [isSaved, setIsSaved] = useState(false);
     const [activeTab, setActiveTab] = useState("perfil");
     const [users, setUsers] = useState<XUser[]>([]);
+    const [userRole, setUserRole] = useState("USER");
     const fileInputRef = useRef<HTMLInputElement>(null);
     const router = useRouter();
 
@@ -31,22 +32,27 @@ export default function SettingsPage() {
                 return;
             }
 
-            // Sync Name from Profile
+            // Sync Name and Role from Profile
             const { data: profile } = await supabase
                 .from('profiles')
                 .select('*')
                 .eq('id', session.user.id)
                 .single();
 
-            if (profile) setName(profile.name || "");
+            if (profile) {
+                setName(profile.name || "");
+                setUserRole(profile.role || "USER");
+            }
 
             // Theme initialization (Local)
             const savedTheme = localStorage.getItem("xmoney_theme") || "system";
             setTheme(savedTheme);
             applyTheme(savedTheme);
 
-            // Fetch Team Profiles
-            fetchTeam();
+            // Fetch Team Profiles (only for admins)
+            if (profile?.role === "ADMIN") {
+                fetchTeam();
+            }
         };
 
         init();
@@ -160,9 +166,8 @@ export default function SettingsPage() {
                 <p className="text-slate-500 font-bold text-[10px] tracking-widest uppercase">Gerenciamento de Ativos e Acessos</p>
             </header>
 
-            {/* Tabs */}
             <div className="bg-slate-50 dark:bg-slate-900/50 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800 flex gap-2 overflow-x-auto scrollbar-hide">
-                {tabs.map((tab) => (
+                {tabs.filter(t => t.id !== 'usuarios' || userRole === 'ADMIN').map((tab) => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
