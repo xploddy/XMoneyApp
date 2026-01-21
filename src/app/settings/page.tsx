@@ -178,8 +178,12 @@ export default function SettingsPage() {
     const tabs = [
         { id: "perfil", label: "Perfil", icon: User },
         { id: "usuarios", label: "Equipe", icon: Users },
-        { id: "dados", label: "Dados", icon: Database },
     ];
+
+    const isVisible = (tabId: string) => {
+        if (tabId === 'usuarios') return userRole === 'ADMIN';
+        return true;
+    };
 
     return (
         <div className="max-w-4xl mx-auto space-y-10 py-10 px-4 md:px-6 animate-in fade-in duration-700 pb-32">
@@ -189,7 +193,7 @@ export default function SettingsPage() {
             </header>
 
             <div className="bg-slate-50 dark:bg-slate-900/50 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800 flex gap-2 overflow-x-auto scrollbar-hide">
-                {tabs.filter(t => t.id !== 'usuarios' || userRole === 'ADMIN').map((tab) => (
+                {tabs.filter(t => isVisible(t.id)).map((tab) => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
@@ -336,42 +340,6 @@ export default function SettingsPage() {
                     </div>
                 )}
 
-                {activeTab === "dados" && (
-                    <div className="space-y-8 animate-in slide-in-from-bottom-5 duration-500">
-                        <section className="premium-card p-10 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-10">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <button onClick={handleBackup} className="flex flex-col items-center justify-center gap-5 p-10 border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-3xl group hover:border-primary transition-all bg-slate-50/50 dark:bg-slate-950/20">
-                                    <Download size={36} className="text-slate-300 group-hover:text-primary transition-all transform group-hover:-translate-y-1" />
-                                    <div className="text-center">
-                                        <p className="font-black text-xs uppercase tracking-[0.2em] text-slate-900 dark:text-white">Exportar Backup</p>
-                                        <p className="text-[8px] text-slate-400 font-bold uppercase mt-1 tracking-widest">Protocolo JSON Decriptografado</p>
-                                    </div>
-                                </button>
-                                <button onClick={() => fileInputRef.current?.click()} className="flex flex-col items-center justify-center gap-5 p-10 border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-3xl group hover:border-emerald-500 transition-all bg-slate-50/50 dark:bg-slate-950/20">
-                                    <Upload size={36} className="text-slate-300 group-hover:text-emerald-500 transition-all transform group-hover:-translate-y-1" />
-                                    <div className="text-center">
-                                        <p className="font-black text-xs uppercase tracking-[0.2em] text-slate-900 dark:text-white">Importar Protocolo</p>
-                                        <p className="text-[8px] text-slate-400 font-bold uppercase mt-1 tracking-widest">Sincronização de Dados Brutal</p>
-                                    </div>
-                                    <input type="file" ref={fileInputRef} onChange={handleRestore} className="hidden" />
-                                </button>
-                            </div>
-
-                            <div className="pt-8 border-t border-slate-100 dark:border-slate-800">
-                                <div className="p-6 bg-rose-50/50 dark:bg-rose-500/5 rounded-3xl border border-rose-100/50 dark:border-rose-900/20 flex flex-col md:flex-row items-center justify-between gap-6">
-                                    <div className="text-center md:text-left">
-                                        <h4 className="text-sm font-black text-rose-600 dark:text-rose-500 uppercase tracking-tighter">Zona de Exclusão Irreversível</h4>
-                                        <p className="text-[9px] text-rose-400 font-bold uppercase tracking-widest mt-1">Apagar todos os registros de transações e sessões</p>
-                                    </div>
-                                    <button onClick={() => { if (confirm("ALERTA: Isso apagará TODOS os dados localmente. Confirmar?")) { localStorage.clear(); window.location.reload(); } }}
-                                        className="bg-rose-600 text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-rose-600/20 hover:scale-[1.05] active:scale-95 transition-all">
-                                        Wipe Storage
-                                    </button>
-                                </div>
-                            </div>
-                        </section>
-                    </div>
-                )}
             </div>
         </div>
     );

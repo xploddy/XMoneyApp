@@ -92,23 +92,54 @@ export default function TransactionsPage() {
         });
 
     const exportToXLSX = () => {
-        if (transactions.length === 0) return;
-        const worksheetData = transactions.map(t => {
+        if (transactions.length === 0) {
+            alert("Sem dados para exportar.");
+            return;
+        }
+
+        const workbook = XLSX.utils.book_new();
+
+        // Group transactions by Month/Year for Full History
+        const groups: Record<string, any[]> = {};
+
+        transactions.forEach(t => {
+            const parts = t.date.split('-');
+            const monthLabel = format(new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, 1), "MMMM_yyyy", { locale: ptBR }).toUpperCase();
+
+            if (!groups[monthLabel]) groups[monthLabel] = [];
+
             const [yearStr, monthStr, dayStr] = t.date.split('-');
-            return {
-                "DATA": `${dayStr}/${monthStr}/${yearStr}`,
+            groups[monthLabel].push({
+                "DIA": dayStr,
+                "DATA COMPLETA": `${dayStr}/${monthStr}/${yearStr}`,
                 "CATEGORIA": t.category.toUpperCase(),
-                "DESCRIÇÃO": t.description || "—",
+                "DESCRIÇÃO": t.description || "Geral",
                 "TIPO": t.type === "INCOME" ? "ENTRADA" : "SAÍDA",
                 "VALOR": t.amount,
                 "STATUS": t.paid ? "LIQUIDADO" : "PENDENTE"
-            };
+            });
         });
 
-        const worksheet = XLSX.utils.json_to_sheet(worksheetData);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Full History");
-        XLSX.writeFile(workbook, "Relatorio_XFinance_Full.xlsx");
+        // Create a sheet for each month
+        Object.keys(groups).sort().reverse().forEach(label => {
+            const data = groups[label].sort((a, b) => parseInt(b.DIA) - parseInt(a.DIA));
+            const worksheet = XLSX.utils.json_to_sheet(data);
+
+            const wscols = [
+                { wch: 8 },  // DIA
+                { wch: 18 }, // DATA COMPLETA
+                { wch: 22 }, // CATEGORIA
+                { wch: 40 }, // DESCRIÇÃO
+                { wch: 12 }, // TIPO
+                { wch: 18 }, // VALOR
+                { wch: 18 }  // STATUS
+            ];
+            worksheet['!cols'] = wscols;
+
+            XLSX.utils.book_append_sheet(workbook, worksheet, label.slice(0, 31));
+        });
+
+        XLSX.writeFile(workbook, `XFINANCE_HISTORICO_TOTAL.xlsx`);
     };
 
     return (

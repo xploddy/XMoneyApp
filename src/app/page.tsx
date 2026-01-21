@@ -5,11 +5,10 @@ import { useRouter } from "next/navigation";
 import SummaryCards from "@/components/dashboard/SummaryCards";
 import TransactionForm from "@/components/transactions/TransactionForm";
 import CategoryChart, { CHART_COLORS } from "@/components/dashboard/CategoryChart";
-import { Plus, Calendar, Zap, ChevronRight, LayoutDashboard, Coffee, Home, Car, Heart, Briefcase, HelpCircle, ShoppingCart, ArrowRight, Table } from "lucide-react";
+import { Plus, Calendar, Zap, ChevronRight, LayoutDashboard, Coffee, Home, Car, Heart, Briefcase, HelpCircle, ShoppingCart, ArrowRight } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import * as XLSX from "xlsx";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
@@ -101,61 +100,10 @@ export default function Dashboard() {
     setIsFormOpen(false);
   };
 
-  const exportToXLSX = () => {
-    if (transactions.length === 0) {
-      alert("Sem dados para exportar.");
-      return;
-    }
 
-    const workbook = XLSX.utils.book_new();
-
-    // Group transactions by Month/Year
-    const groups: Record<string, any[]> = {};
-
-    transactions.forEach(t => {
-      const parts = t.date.split('-');
-      const monthLabel = format(new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, 1), "MMMM_yyyy", { locale: ptBR }).toUpperCase();
-
-      if (!groups[monthLabel]) groups[monthLabel] = [];
-
-      const [yearStr, monthStr, dayStr] = t.date.split('-');
-      groups[monthLabel].push({
-        "DIA": dayStr,
-        "DATA COMPLETA": `${dayStr}/${monthStr}/${yearStr}`,
-        "CATEGORIA": t.category.toUpperCase(),
-        "DESCRIÇÃO": t.description || "Geral",
-        "TIPO": t.type === "INCOME" ? "ENTRADA" : "SAÍDA",
-        "VALOR": t.amount,
-        "STATUS": t.paid ? "LIQUIDADO" : "PENDENTE"
-      });
-    });
-
-    // Create a sheet for each month
-    Object.keys(groups).sort().reverse().forEach(label => {
-      const data = groups[label].sort((a, b) => parseInt(b.DIA) - parseInt(a.DIA));
-      const worksheet = XLSX.utils.json_to_sheet(data);
-
-      // Basic aesthetic sizing
-      const wscols = [
-        { wch: 6 },  // DIA
-        { wch: 15 }, // DATA COMPLETA
-        { wch: 20 }, // CATEGORIA
-        { wch: 35 }, // DESCRIÇÃO
-        { wch: 12 }, // TIPO
-        { wch: 15 }, // VALOR
-        { wch: 15 }  // STATUS
-      ];
-      worksheet['!cols'] = wscols;
-
-      XLSX.utils.book_append_sheet(workbook, worksheet, label.slice(0, 31)); // Limit 31 chars for sheet name
-    });
-
-    XLSX.writeFile(workbook, `XFINANCE_RELATORIO_ESTRUTURADO.xlsx`);
-  };
-
-  // Helper to get month from string 'YYYY-MM-DD'
+  // Dashboard optimized for Analysis & Action
   const currentMonthTransactions = transactions.filter(t => {
-    const tDate = new Date(t.date + 'T12:00:00'); // Safe parse
+    const tDate = new Date(t.date + 'T12:00:00');
     return tDate.getMonth() + 1 === month && tDate.getFullYear() === year;
   });
 
@@ -172,40 +120,51 @@ export default function Dashboard() {
       return acc;
     }, []);
 
+  const MONTHS = Array.from({ length: 12 }, (_, i) => ({
+    id: i + 1,
+    name: format(new Date(2024, i, 1), "MMMM", { locale: ptBR })
+  }));
+
   return (
     <div className="max-w-7xl mx-auto space-y-10 py-10 px-4 md:px-12 animate-in fade-in duration-700">
-      {/* Top Header - Responsive */}
+      {/* Top Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pt-4 md:pt-0">
         <div className="space-y-1">
           <p className="text-primary font-black text-[10px] tracking-[0.3em] uppercase flex items-center gap-2">
-            <ChevronRight size={12} strokeWidth={3} /> Private Assets
+            <ChevronRight size={12} strokeWidth={3} /> Dashboard Operacional
           </p>
           <h1 className="text-5xl font-black text-white tracking-tighter">
             Olá, <span className="text-primary">{userName.toLowerCase()}</span>
           </h1>
         </div>
 
-        <div className="flex items-center gap-4 w-full md:w-auto">
-          <div className="flex-1 md:flex-none flex items-center gap-3 bg-[#161B26] px-5 py-3 rounded-2xl border border-white/5 shadow-lg group">
-            <Calendar size={18} className="text-slate-500 group-hover:text-primary transition-colors" />
-            <select
-              value={month}
-              onChange={(e) => setMonth(parseInt(e.target.value))}
-              className="bg-transparent border-none focus:ring-0 font-black text-sm text-white uppercase tracking-widest outline-none cursor-pointer appearance-none pr-6"
-            >
-              {Array.from({ length: 12 }).map((_, i) => (
-                <option key={i + 1} value={i + 1} className="bg-[#161B26]">
-                  {format(new Date(2024, i, 1), "MMM", { locale: ptBR })}
-                </option>
-              ))}
-            </select>
+        <div className="flex flex-col items-end gap-2 text-right">
+          <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest pl-1">Seletor de Ciclo</span>
+          <div className="flex items-center gap-2 bg-[#161B26] p-1.5 rounded-2xl border border-white/5 shadow-lg">
+            <button onClick={() => setYear(y => y - 1)} className="p-2 text-slate-500 hover:text-white transition-colors"><Zap size={14} /></button>
+            <span className="text-xs font-black text-white px-2">{year}</span>
+            <button onClick={() => setYear(y => y + 1)} className="p-2 text-slate-500 hover:text-white transition-colors"><Zap size={14} className="rotate-180" /></button>
           </div>
-          <button
-            onClick={exportToXLSX}
-            className="p-3 bg-[#161B26] rounded-2xl border border-white/5 text-slate-500 hover:text-emerald-400 transition-all active:scale-95 shadow-lg"
-          >
-            <Table size={20} />
-          </button>
+        </div>
+      </div>
+
+      {/* Premium Month Selector Panel */}
+      <div className="bg-[#161B26]/50 p-2 rounded-[2.5rem] border border-white/5 overflow-hidden">
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide px-2 py-1">
+          {MONTHS.map((m) => (
+            <button
+              key={m.id}
+              onClick={() => setMonth(m.id)}
+              className={cn(
+                "whitespace-nowrap px-8 py-4 rounded-[1.8rem] text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300",
+                month === m.id
+                  ? "bg-primary text-white shadow-xl shadow-primary/20 scale-105"
+                  : "text-slate-500 hover:text-slate-300 hover:bg-white/5"
+              )}
+            >
+              {m.name}
+            </button>
+          ))}
         </div>
       </div>
 
