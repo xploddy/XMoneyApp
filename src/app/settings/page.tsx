@@ -14,7 +14,7 @@ interface XUser {
     name: string;
     email: string;
     role: "ADMIN" | "USER";
-    createdAt: string;
+    created_at: string;
 }
 
 export default function SettingsPage() {
@@ -65,6 +65,10 @@ export default function SettingsPage() {
             .select('*')
             .order('created_at', { ascending: false });
 
+        if (error) {
+            console.error("Erro ao carregar equipe:", error);
+            return;
+        }
         if (data) setUsers(data as XUser[]);
     };
 
@@ -295,19 +299,19 @@ export default function SettingsPage() {
                                                 "w-12 h-12 rounded-xl flex items-center justify-center font-black text-sm transition-all group-hover:rotate-3",
                                                 u.role === "ADMIN" ? "bg-amber-500 text-white shadow-lg shadow-amber-500/20" : "bg-slate-200 dark:bg-slate-800 text-slate-500"
                                             )}>
-                                                {u.name.substring(0, 2).toUpperCase()}
+                                                {(u.name || u.email || "??").substring(0, 2).toUpperCase()}
                                             </div>
                                             <div>
                                                 <div className="flex items-center gap-2">
-                                                    <span className="font-black text-sm text-slate-900 dark:text-white leading-none">{u.name}</span>
+                                                    <span className="font-black text-sm text-slate-900 dark:text-white leading-none">{u.name || "Sem Nome"}</span>
                                                     <span className={cn(
                                                         "px-2 py-0.5 rounded-md text-[7px] font-black uppercase tracking-widest",
-                                                        u.role === "ADMIN" ? "bg-amber-100 text-amber-600 dark:bg-amber-500/10 dark:text-amber-500" : "bg-slate-100 text-slate-400 dark:bg-slate-800"
+                                                        u.role?.toUpperCase() === "ADMIN" ? "bg-amber-100 text-amber-600 dark:bg-amber-500/10 dark:text-amber-500" : "bg-slate-100 text-slate-400 dark:bg-slate-800"
                                                     )}>
-                                                        {u.role}
+                                                        {u.role || "USER"}
                                                     </span>
                                                 </div>
-                                                <p className="text-[10px] text-slate-500 font-bold uppercase mt-1 opacity-70">{u.email}</p>
+                                                <p className="text-[10px] text-slate-500 font-bold uppercase mt-1 opacity-70">{u.email || "Sem e-mail"}</p>
                                             </div>
                                         </div>
 
