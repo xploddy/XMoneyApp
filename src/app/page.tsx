@@ -62,7 +62,8 @@ export default function Dashboard() {
       .from('transactions')
       .select('*')
       .eq('user_id', userId)
-      .order('date', { ascending: false });
+      .order('date', { ascending: false })
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error("Erro ao buscar transações:", error);
@@ -262,6 +263,9 @@ export default function Dashboard() {
                       </div>
                     </div>
                     <div className="text-right">
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">
+                        {format(new Date(transaction.date), "dd/MM/yyyy")}
+                      </p>
                       <p className={cn(
                         "font-black text-lg tracking-tighter",
                         transaction.type === 'INCOME' ? 'text-emerald-500' : 'text-slate-900 dark:text-white'
