@@ -44,7 +44,7 @@ export default function SettingsPage() {
 
             if (profile) {
                 setName(profile.name || "");
-                setUserRole("ADMIN"); // FORÇADO PARA TESTE
+                setUserRole(profile.role || "USER");
             }
 
             // Theme initialization (Local)
@@ -52,8 +52,10 @@ export default function SettingsPage() {
             setTheme(savedTheme);
             applyTheme(savedTheme);
 
-            // Fetch Team Profiles (Unconditional for testing)
-            fetchTeam();
+            // Fetch Team Profiles (only for admins)
+            if (profile?.role === "ADMIN") {
+                fetchTeam();
+            }
         };
 
         init();
@@ -191,7 +193,7 @@ export default function SettingsPage() {
             </header>
 
             <div className="bg-slate-50 dark:bg-slate-900/50 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800 flex gap-2 overflow-x-auto scrollbar-hide">
-                {tabs.map((tab) => (
+                {tabs.filter(t => t.id === 'perfil' || userRole?.toUpperCase() === 'ADMIN').map((tab) => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
