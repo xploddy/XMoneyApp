@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { List, Search, ArrowUpCircle, ArrowDownCircle, Trash2, Filter, Download, Table, Edit3, ArrowLeft, Clock } from "lucide-react";
+import { List, Search, ArrowUpCircle, ArrowDownCircle, Trash2, Filter, Download, Table, Edit3, ArrowLeft, Clock, HelpCircle, Coffee, Zap, Home, Car, Heart, Briefcase, ShoppingCart } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -11,6 +11,17 @@ import * as XLSX from "xlsx";
 import TransactionForm from "@/components/transactions/TransactionForm";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+
+const CATEGORY_ICONS: Record<string, any> = {
+    "Alimentação": Coffee,
+    "Lazer": Zap,
+    "Aluguel": Home,
+    "Transporte": Car,
+    "Saúde": Heart,
+    "Salário": Briefcase,
+    "Outros": HelpCircle,
+    "Assinaturas": ShoppingCart,
+};
 
 export default function TransactionsPage() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -38,53 +49,38 @@ export default function TransactionsPage() {
             .from('transactions')
             .select('*')
             .eq('user_id', userId)
-            .order('date', { ascending: false });
+            .order('date', { ascending: false })
+            .order('created_at', { ascending: false });
 
-        if (error) {
-            console.error("Erro ao buscar transações:", error);
-            return;
-        }
-        setTransactions(data.map(t => ({ ...t, date: new Date(t.date) })));
+        if (error) return;
+        setTransactions(data);
     };
 
     const handleDelete = async (id: string) => {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) return;
-
-        const { error } = await supabase
-            .from('transactions')
-            .delete()
-            .eq('id', id);
-
-        if (error) {
-            console.error("Erro ao deletar transação:", error);
-            return;
-        }
-
+        await supabase.from('transactions').delete().eq('id', id);
         fetchTransactions(session.user.id);
+        setIsFormOpen(false);
     };
 
     const handleUpdate = async (data: any) => {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) return;
 
+        const { id, ...cleanData } = data;
         const transactionData = {
-            ...data,
-            user_id: session.user.id,
-            date: new Date(data.date).toISOString().split('T')[0]
+            ...cleanData,
+            user_id: session.user.id
         };
 
-        const { error } = await supabase
-            .from('transactions')
-            .update(transactionData)
-            .eq('id', data.id);
-
+        const { error } = await supabase.from('transactions').update(transactionData).eq('id', id);
         if (error) {
-            console.error("Erro ao atualizar transação:", error);
+            alert("Erro ao atualizar: " + error.message);
             return;
         }
-
         fetchTransactions(session.user.id);
+        setIsFormOpen(false);
     };
 
     const filteredTransactions = transactions
@@ -93,71 +89,74 @@ export default function TransactionsPage() {
                 (t.description && t.description.toLowerCase().includes(searchTerm.toLowerCase()));
             const matchesType = filterType === "ALL" || t.type === filterType;
             return matchesSearch && matchesType;
-        })
-        .sort((a, b) => b.date.getTime() - a.date.getTime());
+        });
 
     const exportToXLSX = () => {
-        const worksheetData = filteredTransactions.map(t => ({
-            "DATA": formatDate(t.date),
-            "CATEGORIA": t.category.toUpperCase(),
-            "DESCRIÇÃO": t.description || "—",
-            "TIPO": t.type === "INCOME" ? "ENTRADA" : "SAÍDA",
-            "VALOR": t.amount,
-            "STATUS": t.paid ? "LIQUIDADO" : "PENDENTE"
-        }));
+        if (transactions.length === 0) return;
+        const worksheetData = transactions.map(t => {
+            const [yearStr, monthStr, dayStr] = t.date.split('-');
+            return {
+                "DATA": `${dayStr}/${monthStr}/${yearStr}`,
+                "CATEGORIA": t.category.toUpperCase(),
+                "DESCRIÇÃO": t.description || "—",
+                "TIPO": t.type === "INCOME" ? "ENTRADA" : "SAÍDA",
+                "VALOR": t.amount,
+                "STATUS": t.paid ? "LIQUIDADO" : "PENDENTE"
+            };
+        });
 
         const worksheet = XLSX.utils.json_to_sheet(worksheetData);
         const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Planilha Geral");
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Full History");
         XLSX.writeFile(workbook, "Relatorio_XFinance_Full.xlsx");
     };
 
     return (
-        <div className="max-w-6xl mx-auto space-y-6 py-10 px-4 md:px-6 animate-in fade-in duration-700 pb-32">
-            <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="max-w-7xl mx-auto space-y-10 py-10 px-4 md:px-12 animate-in fade-in duration-700">
+            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div className="space-y-1">
-                    <Link href="/" className="inline-flex items-center gap-1.5 text-slate-400 hover:text-primary transition-all font-black text-[9px] uppercase tracking-widest leading-none">
-                        <ArrowLeft size={12} /> Painel
+                    <Link href="/" className="inline-flex items-center gap-1.5 text-primary hover:text-white transition-all font-black text-[9px] uppercase tracking-[0.3em] leading-none mb-2">
+                        <ArrowLeft size={12} strokeWidth={3} /> Voltar ao Painel
                     </Link>
-                    <h1 className="text-3xl font-black tracking-tighter text-slate-900 dark:text-white leading-tight">Fluxo de Caixa</h1>
+                    <h1 className="text-4xl font-black tracking-tighter text-white leading-tight">Histórico de Ativos</h1>
                 </div>
 
                 <button
                     onClick={exportToXLSX}
-                    className="flex items-center justify-center gap-2.5 px-6 py-3.5 bg-emerald-600 text-white rounded-xl font-black transition-all shadow-lg hover:scale-[1.02] active:scale-[0.98]"
+                    className="flex items-center justify-center gap-3 px-8 py-4 bg-[#161B26] text-white border border-white/5 rounded-2xl font-black transition-all shadow-xl hover:border-emerald-500/50 group"
                 >
-                    <Table size={16} />
-                    <span className="text-[10px] tracking-widest uppercase">Exportar para Excel</span>
+                    <Table size={18} className="text-slate-500 group-hover:text-emerald-400" />
+                    <span className="text-[11px] tracking-widest uppercase">Exportar para Excel</span>
                 </button>
             </header>
 
-            {/* Filters */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
+            {/* Premium Search & Filter */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
                 <div className="lg:col-span-8 relative group">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-all" size={18} />
+                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-all" size={20} />
                     <input
                         type="text"
-                        placeholder="Pesquisar..."
+                        placeholder="Buscar transação ou categoria..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 py-3.5 pl-12 pr-5 rounded-xl outline-none focus:border-primary transition-all font-bold text-sm"
+                        className="w-full bg-[#161B26] border border-white/5 py-4 pl-14 pr-6 rounded-2xl outline-none focus:border-primary/50 transition-all font-bold text-sm text-white placeholder:text-slate-600 shadow-inner"
                     />
                 </div>
 
-                <div className="lg:col-span-4 flex gap-1 p-1 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 h-[52px] items-center">
+                <div className="lg:col-span-4 flex gap-1.5 p-1.5 bg-[#161B26] rounded-2xl border border-white/5 items-center">
                     {[
                         { id: "ALL", label: "Geral" },
-                        { id: "INCOME", label: "Entrada" },
-                        { id: "EXPENSE", label: "Saída" }
+                        { id: "INCOME", label: "Entradas" },
+                        { id: "EXPENSE", label: "Saídas" }
                     ].map((type) => (
                         <button
                             key={type.id}
                             onClick={() => setFilterType(type.id)}
                             className={cn(
-                                "flex-1 h-full rounded-lg text-[9px] font-black uppercase tracking-widest transition-all",
+                                "flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
                                 filterType === type.id
-                                    ? "bg-white dark:bg-slate-800 text-primary shadow-sm"
-                                    : "text-slate-400 hover:text-slate-600"
+                                    ? "bg-primary text-white shadow-lg"
+                                    : "text-slate-500 hover:text-slate-300"
                             )}
                         >
                             {type.label}
@@ -166,49 +165,51 @@ export default function TransactionsPage() {
                 </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
                 {filteredTransactions.length === 0 ? (
-                    <div className="premium-card p-16 rounded-[2rem] text-center border-dashed border-2 border-slate-100 dark:border-slate-800">
-                        <p className="text-slate-300 font-black text-[10px] uppercase tracking-widest">Sem registros</p>
+                    <div className="premium-card p-20 text-center border-dashed border-white/10 opacity-30">
+                        <p className="text-xs font-black uppercase tracking-[0.2em]">Sem resultados para esta busca</p>
                     </div>
                 ) : (
-                    filteredTransactions.map((t) => (
-                        <div
-                            key={t.id}
-                            onClick={() => { setEditingTransaction(t); setIsFormOpen(true); }}
-                            className="premium-card p-5 rounded-2xl flex items-center justify-between group cursor-pointer bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800"
-                        >
-                            <div className="flex items-center gap-4">
-                                <div className={cn(
-                                    "w-11 h-11 rounded-xl flex items-center justify-center transition-all group-hover:scale-105 shadow-sm",
-                                    t.type === "INCOME" ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10" : "bg-rose-50 text-rose-600 dark:bg-rose-500/10"
-                                )}>
-                                    {t.type === "INCOME" ? <ArrowUpCircle size={18} /> : <ArrowDownCircle size={18} />}
+                    filteredTransactions.map((t) => {
+                        const Icon = CATEGORY_ICONS[t.category] || HelpCircle;
+                        return (
+                            <div
+                                key={t.id}
+                                onClick={() => { setEditingTransaction(t); setIsFormOpen(true); }}
+                                className="premium-card p-4 md:p-6 flex items-center justify-between bg-[#161B26] hover:bg-slate-900 group transition-all cursor-pointer border-white/5"
+                            >
+                                <div className="flex items-center gap-4 md:gap-5">
+                                    <div className="w-11 h-11 md:w-14 md:h-14 bg-slate-950 rounded-xl md:rounded-[1.25rem] flex items-center justify-center text-slate-500 group-hover:bg-primary/10 group-hover:text-primary transition-all shadow-inner shrink-0">
+                                        <Icon size={22} className="md:size-[26px]" />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <h4 className="font-black text-white text-[15px] md:text-lg tracking-tight leading-none truncate">{t.category}</h4>
+                                        <p className="text-[9px] md:text-[10px] text-slate-500 font-bold uppercase tracking-[0.1em] truncate max-w-[70px] xs:max-w-[100px] md:max-w-xs">{t.description || "Geral"}</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <div className="flex items-center gap-2">
-                                        <span className="font-black text-sm text-slate-800 dark:text-slate-100">{t.category}</span>
+                                <div className="text-right space-y-1 md:space-y-1.5 shrink-0 ml-2">
+                                    <p className="text-[9px] md:text-[10px] text-slate-500 font-black tracking-widest">
+                                        {t.date.split('-').reverse().slice(0, 2).join('/')}
+                                    </p>
+                                    <p className={cn(
+                                        "text-base md:text-xl font-black tracking-tighter leading-none",
+                                        t.type === "INCOME" ? "text-success" : "text-white"
+                                    )}>
+                                        {t.type === "INCOME" ? "+" : "-"} {t.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                                    </p>
+                                    <div className="flex justify-end">
                                         <span className={cn(
-                                            "px-2 py-0.5 rounded-md text-[7px] font-black uppercase tracking-widest",
-                                            t.paid ? "bg-emerald-500 text-white" : "bg-amber-100 text-amber-600 dark:bg-amber-500/10 dark:text-amber-500"
+                                            "text-[7px] md:text-[9px] font-black px-2 md:px-3 py-0.5 md:py-1 rounded-full uppercase tracking-widest transition-all",
+                                            t.paid ? "bg-success/10 text-success" : "bg-amber-500/10 text-amber-500"
                                         )}>
-                                            {t.paid ? "LIQ" : "PEND"}
+                                            {t.paid ? "LIQUIDADO" : "PENDENTE"}
                                         </span>
                                     </div>
-                                    <p className="text-[10px] text-slate-400 font-bold uppercase truncate max-w-[150px]">{t.description || 'Geral'}</p>
                                 </div>
                             </div>
-                            <div className="text-right">
-                                <p className={cn(
-                                    "font-black text-lg tracking-tighter",
-                                    t.type === "INCOME" ? "text-emerald-500" : "text-slate-900 dark:text-white"
-                                )}>
-                                    {t.type === "INCOME" ? "+" : "-"} {formatCurrency(t.amount)}
-                                </p>
-                                <p className="text-[9px] text-slate-300 font-black">{formatDate(t.date)}</p>
-                            </div>
-                        </div>
-                    ))
+                        );
+                    })
                 )}
             </div>
 

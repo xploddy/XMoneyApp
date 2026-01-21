@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import SummaryCards from "@/components/dashboard/SummaryCards";
 import TransactionForm from "@/components/transactions/TransactionForm";
-import CategoryChart from "@/components/dashboard/CategoryChart";
-import { Plus, Calendar, Zap, TrendingUp, TrendingDown, Clock, ShoppingCart, Coffee, Home, Car, Heart, Briefcase, HelpCircle, ArrowRight, Trash2, Download, Table, PlusCircle, Sparkles } from "lucide-react";
+import CategoryChart, { CHART_COLORS } from "@/components/dashboard/CategoryChart";
+import { Plus, Calendar, Zap, ChevronRight, LayoutDashboard, Coffee, Home, Car, Heart, Briefcase, HelpCircle, ShoppingCart, ArrowRight, Table } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -42,14 +42,13 @@ export default function Dashboard() {
         return;
       }
 
-      // Fetch Profile for Role and Name
       const { data: profile } = await supabase
         .from('profiles')
         .select('name, role')
         .eq('id', session.user.id)
         .single();
 
-      setUserName(profile?.name || session.user.user_metadata?.name || "Gestor");
+      setUserName(profile?.name || session.user.user_metadata?.name || "gestor");
       setUserRole(profile?.role || "USER");
       fetchTransactions(session.user.id);
     };
@@ -65,99 +64,75 @@ export default function Dashboard() {
       .order('date', { ascending: false })
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error("Erro ao buscar transações:", error);
-      return;
-    }
-    setTransactions(data.map(t => ({ ...t, date: new Date(t.date) })));
+    if (error) return;
+    // Keep date as a string YYYY-MM-DD to avoid JS Date timezone shifts
+    setTransactions(data);
   };
 
   const handleTransactionSubmit = async (data: any) => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
 
+    const { id, ...cleanData } = data;
     const transactionData = {
-      ...data,
-      user_id: session.user.id,
-      date: new Date(data.date).toISOString().split('T')[0]
+      ...cleanData,
+      user_id: session.user.id
     };
 
-    let result;
-    if (data.id) {
-      result = await supabase
-        .from('transactions')
-        .update(transactionData)
-        .eq('id', data.id)
-        .select();
-    } else {
-      const { id, ...newData } = transactionData;
-      result = await supabase
-        .from('transactions')
-        .insert([newData])
-        .select();
-    }
+    const { error } = id
+      ? await supabase.from('transactions').update(transactionData).eq('id', id)
+      : await supabase.from('transactions').insert([transactionData]);
 
-    if (result.error) {
-      console.error("Erro ao salvar transação:", result.error);
+    if (error) {
+      console.error("Save Error:", error);
+      alert("Erro ao salvar: " + error.message);
       return;
     }
 
     fetchTransactions(session.user.id);
+    setIsFormOpen(false);
   };
 
   const handleDeleteTransaction = async (id: string) => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
-
-    const { error } = await supabase
-      .from('transactions')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      console.error("Erro ao deletar transação:", error);
-      return;
-    }
-
+    await supabase.from('transactions').delete().eq('id', id);
     fetchTransactions(session.user.id);
+    setIsFormOpen(false);
   };
 
   const exportToXLSX = () => {
-    const worksheetData = transactions.map(t => ({
-      "DATA": format(new Date(t.date), "dd/MM/yyyy"),
-      "CATEGORIA": t.category.toUpperCase(),
-      "DESCRIÇÃO": t.description || "N/A",
-      "TIPO": t.type === "INCOME" ? "ENTRADA" : "SAÍDA",
-      "VALOR (R$)": t.amount,
-      "STATUS": t.paid ? "LIQUIDADO" : "PENDENTE"
-    }));
+    if (transactions.length === 0) return;
+
+    const worksheetData = transactions.map(t => {
+      // Manual parsing to avoid Date object timezone shifts
+      const [yearStr, monthStr, dayStr] = t.date.split('-');
+      const formattedDate = `${dayStr}/${monthStr}/${yearStr}`;
+
+      return {
+        "DATA": formattedDate,
+        "CATEGORIA": t.category.toUpperCase(),
+        "DESCRIÇÃO": t.description || "N/A",
+        "TIPO": t.type === "INCOME" ? "ENTRADA" : "SAÍDA",
+        "VALOR (R$)": t.amount,
+        "STATUS": t.paid ? "LIQUIDADO" : "PENDENTE"
+      };
+    });
 
     const worksheet = XLSX.utils.json_to_sheet(worksheetData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "XFinance Relatório");
-    XLSX.writeFile(workbook, `XFinance_Extrato_${month}_${year}.xlsx`);
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Backup Geral");
+    XLSX.writeFile(workbook, `XFinance_Backup_Geral_${new Date().getTime()}.xlsx`);
   };
 
-  const openEdit = (t: any) => {
-    setEditingTransaction(t);
-    setIsFormOpen(true);
-  };
+  // Helper to get month from string 'YYYY-MM-DD'
+  const currentMonthTransactions = transactions.filter(t => {
+    const tDate = new Date(t.date + 'T12:00:00'); // Safe parse
+    return tDate.getMonth() + 1 === month && tDate.getFullYear() === year;
+  });
 
-  const currentMonthTransactions = transactions
-    .filter(t => {
-      const d = new Date(t.date);
-      return d.getMonth() + 1 === month && d.getFullYear() === year;
-    })
-    .sort((a, b) => b.date.getTime() - a.date.getTime());
-
-  const income = currentMonthTransactions
-    .filter((t) => t.type === "INCOME")
-    .reduce((acc, t) => acc + t.amount, 0);
-
-  const expense = currentMonthTransactions
-    .filter((t) => t.type === "EXPENSE")
-    .reduce((acc, t) => acc + t.amount, 0);
-
+  const income = currentMonthTransactions.filter(t => t.type === "INCOME").reduce((acc, t) => acc + t.amount, 0);
+  const expense = currentMonthTransactions.filter(t => t.type === "EXPENSE").reduce((acc, t) => acc + t.amount, 0);
   const balance = income - expense;
 
   const categoryData = currentMonthTransactions
@@ -170,116 +145,105 @@ export default function Dashboard() {
     }, []);
 
   return (
-    <div className="max-w-6xl mx-auto space-y-10 py-8 px-4 md:px-6 animate-in fade-in duration-1000 pb-32 md:pb-8">
-      {/* Upper Header */}
-      <header className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-primary">
-            <Sparkles size={16} className="animate-pulse" />
-            <p className="font-black text-[9px] tracking-[0.3em] uppercase">Private Assets</p>
-          </div>
-          <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-slate-900 dark:text-white">
-            Olá, <span className="text-primary">{userName}</span>
+    <div className="max-w-7xl mx-auto space-y-10 py-10 px-4 md:px-12 animate-in fade-in duration-700">
+      {/* Top Header - Responsive */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pt-4 md:pt-0">
+        <div className="space-y-1">
+          <p className="text-primary font-black text-[10px] tracking-[0.3em] uppercase flex items-center gap-2">
+            <ChevronRight size={12} strokeWidth={3} /> Private Assets
+          </p>
+          <h1 className="text-5xl font-black text-white tracking-tighter">
+            Olá, <span className="text-primary">{userName.toLowerCase()}</span>
           </h1>
         </div>
 
-        <div className="flex items-center gap-3 w-full md:w-auto">
-          <div className="flex-1 md:flex-none flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-4 py-3 rounded-2xl shadow-sm">
-            <Calendar size={18} className="text-slate-400" />
+        <div className="flex items-center gap-4 w-full md:w-auto">
+          <div className="flex-1 md:flex-none flex items-center gap-3 bg-[#161B26] px-5 py-3 rounded-2xl border border-white/5 shadow-lg group">
+            <Calendar size={18} className="text-slate-500 group-hover:text-primary transition-colors" />
             <select
               value={month}
               onChange={(e) => setMonth(parseInt(e.target.value))}
-              className="bg-transparent border-none focus:ring-0 font-black text-sm text-slate-900 dark:text-white outline-none cursor-pointer appearance-none pr-4"
+              className="bg-transparent border-none focus:ring-0 font-black text-sm text-white uppercase tracking-widest outline-none cursor-pointer appearance-none pr-6"
             >
               {Array.from({ length: 12 }).map((_, i) => (
-                <option key={i + 1} value={i + 1} className="dark:bg-slate-900">
-                  {format(new Date(2024, i, 1), "MMMM", { locale: ptBR })}
+                <option key={i + 1} value={i + 1} className="bg-[#161B26]">
+                  {format(new Date(2024, i, 1), "MMM", { locale: ptBR })}
                 </option>
               ))}
             </select>
           </div>
-
           <button
             onClick={exportToXLSX}
-            className="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-400 hover:text-emerald-500 transition-all shadow-sm active:scale-90"
+            className="p-3 bg-[#161B26] rounded-2xl border border-white/5 text-slate-500 hover:text-emerald-400 transition-all active:scale-95 shadow-lg"
           >
             <Table size={20} />
           </button>
         </div>
-      </header>
+      </div>
 
-      {/* Button 'Novo Item' - Integrated for Desktop | Fixed for Mobile in a clean spot */}
-      <div className="flex justify-start md:block">
+      {/* Main Action Button - Desktop side or Top Mobile */}
+      <div className="flex md:justify-start">
         <button
           onClick={() => { setEditingTransaction(null); setIsFormOpen(true); }}
-          className={cn(
-            "flex items-center gap-3 px-6 py-4 bg-primary text-white rounded-2xl font-black shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all z-[60]",
-            "md:static", // Desktop behavior
-            "fixed bottom-28 right-6 md:bottom-auto md:right-auto" // Mobile floating behavior, moved higher to clear navbar
-          )}
+          className="w-full md:w-auto px-10 bg-primary py-5 rounded-2xl flex items-center justify-center gap-4 shadow-2xl shadow-primary/30 hover:scale-[1.03] transition-all group"
         >
-          <PlusCircle size={22} strokeWidth={3} />
-          <span className="text-[11px] tracking-widest uppercase">Lançar Registro</span>
+          <Plus size={22} strokeWidth={4} className="text-white bg-white/20 rounded-lg" />
+          <span className="text-[13px] font-black uppercase tracking-widest text-white">Lançar Registro</span>
         </button>
       </div>
 
-      {/* Stats Section */}
+      {/* Summary Section - RESTORED BALANCE CARD & GRID */}
       <SummaryCards income={income} expense={expense} balance={balance} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-10">
-        {/* Main List */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        {/* Layout optimized for Desktop Content Management */}
         <div className="lg:col-span-8 space-y-8">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Fluxo de Caixa</h2>
-            <Link href="/transactions" className="p-2.5 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-500 hover:text-primary transition-all">
-              <ArrowRight size={20} />
+            <h2 className="text-2xl font-black text-white tracking-tight">Fluxo de Caixa</h2>
+            <Link href="/transactions" className="w-10 h-10 bg-[#161B26] rounded-xl flex items-center justify-center text-slate-500 hover:text-white border border-white/5 transition-all">
+              <ArrowRight size={20} strokeWidth={3} />
             </Link>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             {currentMonthTransactions.length === 0 ? (
-              <div className="premium-card p-16 rounded-[2rem] text-center border-dashed border-2 border-slate-100 dark:border-slate-800">
-                <p className="text-slate-300 font-black text-xs uppercase tracking-widest">Sem registros este mês</p>
+              <div className="premium-card p-16 text-center border-dashed border-white/10 opacity-30">
+                <p className="text-xs font-black uppercase tracking-[0.2em]">Aguardando novas movimentações</p>
               </div>
             ) : (
-              currentMonthTransactions.map((transaction) => {
-                const Icon = CATEGORY_ICONS[transaction.category] || HelpCircle;
+              currentMonthTransactions.slice(0, 6).map((t) => {
+                const Icon = CATEGORY_ICONS[t.category] || HelpCircle;
                 return (
                   <div
-                    key={transaction.id}
-                    onClick={() => openEdit(transaction)}
-                    className="premium-card p-5 rounded-2xl flex items-center justify-between group cursor-pointer bg-slate-900/50 border border-white/5 hover:border-primary/50 transition-all"
+                    key={t.id}
+                    onClick={() => { setEditingTransaction(t); setIsFormOpen(true); }}
+                    className="premium-card p-4 md:p-6 flex items-center justify-between bg-[#161B26] hover:bg-slate-900 group transition-all cursor-pointer border-white/5"
                   >
-                    <div className="flex items-center gap-4">
-                      <div className={cn(
-                        "w-12 h-12 rounded-xl flex items-center justify-center transition-all group-hover:scale-105 shadow-lg",
-                        transaction.type === 'INCOME' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'
-                      )}>
-                        <Icon size={22} />
+                    <div className="flex items-center gap-4 md:gap-5">
+                      <div className="w-11 h-11 md:w-14 md:h-14 bg-slate-950 rounded-xl md:rounded-[1.25rem] flex items-center justify-center text-slate-500 group-hover:bg-primary/10 group-hover:text-primary transition-all shadow-inner shrink-0">
+                        <Icon size={22} className="md:size-[26px]" />
                       </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="text-[10px] text-primary font-black uppercase tracking-wider">
-                            {format(new Date(transaction.date), "dd/MM")}
-                          </p>
-                          <h4 className="font-black text-base text-white leading-tight">{transaction.category}</h4>
-                        </div>
-                        <p className="text-[10px] text-slate-500 font-bold mt-0.5 uppercase tracking-widest truncate max-w-[150px]">{transaction.description || 'Geral'}</p>
+                      <div className="min-w-0">
+                        <h4 className="font-black text-white text-[15px] md:text-lg tracking-tight leading-none truncate">{t.category}</h4>
+                        <p className="text-[9px] md:text-[10px] text-slate-500 font-bold uppercase tracking-[0.1em] truncate max-w-[70px] xs:max-w-[100px] md:max-w-xs">{t.description || "Geral"}</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className={cn(
-                        "font-black text-lg tracking-tighter",
-                        transaction.type === 'INCOME' ? 'text-emerald-500' : 'text-white'
-                      )}>
-                        {transaction.type === 'INCOME' ? '+' : '-'} {transaction.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                    <div className="text-right space-y-1 md:space-y-1.5 shrink-0 ml-2">
+                      <p className="text-[9px] md:text-[10px] text-slate-500 font-black tracking-widest">
+                        {t.date.split('-').reverse().slice(0, 2).join('/')}
                       </p>
-                      <div className="flex items-center justify-end gap-2 mt-1">
+                      <p className={cn(
+                        "text-base md:text-xl font-black tracking-tighter leading-none",
+                        t.type === "INCOME" ? "text-success" : "text-white"
+                      )}>
+                        {t.type === "INCOME" ? "+" : "-"} {t.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                      </p>
+                      <div className="flex justify-end">
                         <span className={cn(
-                          "text-[8px] px-2 py-0.5 rounded-md font-black uppercase tracking-[0.1em]",
-                          transaction.paid ? "bg-emerald-500 text-white" : "bg-amber-500/10 text-amber-500"
+                          "text-[7px] md:text-[9px] font-black px-2 md:px-3 py-0.5 md:py-1 rounded-full uppercase tracking-widest transition-all",
+                          t.paid ? "bg-success/10 text-success" : "bg-amber-500/10 text-amber-500"
                         )}>
-                          {transaction.paid ? 'Confirmado' : 'Pendente'}
+                          {t.paid ? "LIQUIDADO" : "PENDENTE"}
                         </span>
                       </div>
                     </div>
@@ -290,44 +254,48 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Analytics Card */}
+        {/* Analytics Section - Desktop Right | Mobile Below */}
         <div className="lg:col-span-4 space-y-8">
-          <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Análise</h2>
-          <div className="premium-card p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 space-y-8 shadow-2xl">
-            <div className="relative">
+          <h2 className="text-2xl font-black text-white tracking-tight">Análise</h2>
+          <div className="premium-card p-10 bg-[#161B26] border-white/5 space-y-10 shadow-2xl">
+            <div className="flex justify-center">
               <CategoryChart data={categoryData} />
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-white/50">Total Gasto</p>
-                <p className="text-xl font-black text-slate-900 dark:text-white">{expense.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
-              </div>
             </div>
 
-            <div className="space-y-5">
-              {categoryData.slice(0, 4).map((cat: any) => (
-                <div key={cat.name} className="space-y-2">
-                  <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest">
-                    <span className="text-slate-500 dark:text-white/60">{cat.name}</span>
-                    <span className="text-slate-900 dark:text-white">{((cat.value / expense) * 100).toFixed(0)}%</span>
+            <div className="text-center space-y-2 py-4 border-y border-white/5">
+              <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Total Desembolsado</p>
+              <p className="text-3xl font-black text-white tracking-widest">
+                {expense.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              {categoryData.slice(0, 4).map((cat: any, idx: number) => (
+                <div key={cat.name} className="space-y-3">
+                  <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-[0.15em]">
+                    <span className="text-slate-400">{cat.name}</span>
+                    <span className="text-white">{((cat.value / expense) * 100).toFixed(0)}%</span>
                   </div>
-                  <div className="w-full bg-slate-100 dark:bg-white/10 h-1 rounded-full overflow-hidden">
+                  <div className="w-full bg-slate-950 h-2 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-primary rounded-full transition-all duration-1000"
-                      style={{ width: `${(cat.value / expense) * 100}%` }}
+                      className="h-full rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(0,102,255,0.1)]"
+                      style={{
+                        width: `${(cat.value / expense) * 100}%`,
+                        backgroundColor: CHART_COLORS[idx % CHART_COLORS.length]
+                      }}
                     />
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="pt-6 border-t border-slate-100 dark:border-white/10">
-              <div className="flex gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary/5 dark:bg-primary/20 flex items-center justify-center shrink-0">
-                  <Zap size={18} className="text-primary" />
-                </div>
-                <p className="text-[10px] font-bold leading-relaxed text-slate-400 dark:text-white/80 uppercase tracking-widest">
-                  Mantenha os custos fixos sob controle.
-                </p>
+            <div className="p-6 bg-slate-950/40 rounded-3xl border border-white/5 flex gap-4 items-center">
+              <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shrink-0">
+                <Zap size={24} />
               </div>
+              <p className="text-[10px] font-black text-slate-400 leading-relaxed uppercase tracking-[0.1em]">
+                Mantenha os custos operacionais sob monitoramento constante.
+              </p>
             </div>
           </div>
         </div>
@@ -335,7 +303,7 @@ export default function Dashboard() {
 
       <TransactionForm
         isOpen={isFormOpen}
-        onClose={() => { setIsFormOpen(false); setEditingTransaction(null); }}
+        onClose={() => setIsFormOpen(false)}
         onSubmit={handleTransactionSubmit}
         onDelete={handleDeleteTransaction}
         initialData={editingTransaction}

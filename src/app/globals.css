@@ -1,50 +1,36 @@
 @import "tailwindcss";
 
 @theme {
-  /* Ultra-modern Fintech Palette - FORCED DARK ONLY */
+  /* XFinance Pro Color Palette - Softened */
   --color-primary: #0066FF;
   --color-primary-dark: #0052CC;
   --color-secondary: #7000FF;
-  --color-success: #00C853;
-  --color-danger: #FF3D00;
-  --color-warning: #FFAB00;
+  --color-success: #00FF94;
+  --color-danger: #FF3B30;
+  --color-warning: #FFCc00;
   --color-surface: #0B0F17;
-  --color-surface-dark: #020617;
-
-  --radius-xl: 1rem;
-  --radius-2xl: 1.5rem;
-  --radius-3xl: 2rem;
+  --color-surface-soft: #161B26;
 }
 
 :root {
-  /* Forced Dark Colors even as Root */
   --background: #0B0F17;
   --foreground: #F8FAFC;
   --card-bg: #161B26;
-  --card-border: rgba(255, 255, 255, 0.08);
-  --muted: #94A3B8;
-  --accent: #1E293B;
+  --card-border: rgba(255, 255, 255, 0.05);
 }
 
 body {
-  background: #0B0F17 !important;
+  background-color: #0B0F17 !important;
   color: #F8FAFC !important;
-  min-height: 100vh;
+  font-family: var(--font-geist-sans), sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
 @layer utilities {
   .premium-card {
     background: #161B26;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .premium-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-    border-color: #0066FF;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 2rem;
   }
 
   .text-gradient {
@@ -61,5 +47,11 @@ body {
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+
+  .glass-card {
+    background: rgba(22, 27, 38, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
   }
 }

@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Wallet, LayoutDashboard, List, PlusCircle, Settings, LogOut, ChevronRight } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
+import { LayoutDashboard, List, Settings, LogOut, Bell, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
-
 import { supabase } from "@/lib/supabase";
 
 const navItems = [
@@ -27,20 +26,20 @@ export default function Navbar() {
 
     return (
         <>
-            {/* Desktop Header */}
-            <nav className="hidden md:flex fixed top-0 left-0 right-0 h-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl z-50 px-12 items-center justify-between border-b border-slate-100 dark:border-slate-800 shadow-sm transition-colors duration-300">
+            {/* Desktop Navbar */}
+            <nav className="hidden md:flex fixed top-0 left-0 right-0 h-20 bg-[#0B0F17]/80 backdrop-blur-xl z-[100] px-12 items-center justify-between border-b border-white/5">
                 <Link href="/" className="flex items-center gap-4 group">
-                    <div className="w-11 h-11 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/30 group-hover:rotate-6 transition-all duration-500">
+                    <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/30 group-hover:rotate-6 transition-all">
                         <Wallet className="text-white w-6 h-6" />
                     </div>
                     <div>
-                        <span className="font-black text-xl tracking-tighter text-slate-900 dark:text-white uppercase block leading-none">XFinance</span>
-                        <span className="text-[7.5px] font-black text-slate-400 dark:text-slate-500 tracking-[0.3em] uppercase mt-1 block">Private Asset Mgt.</span>
+                        <span className="font-black text-xl tracking-tighter text-white uppercase block leading-none italic">XFINANCE</span>
+                        <span className="text-[8px] font-black text-slate-500 tracking-[0.4em] uppercase mt-1 block">Private Asset Mgt.</span>
                     </div>
                 </Link>
 
-                <div className="flex items-center gap-6">
-                    <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-950 p-1 rounded-2xl border border-slate-200 dark:border-slate-800">
+                <div className="flex items-center gap-8">
+                    <div className="flex items-center gap-2 bg-slate-900/50 p-1 rounded-2xl border border-white/5">
                         {navItems.map((item) => {
                             const Icon = item.icon;
                             const isActive = pathname === item.href;
@@ -49,10 +48,10 @@ export default function Navbar() {
                                     key={item.name}
                                     href={item.href}
                                     className={cn(
-                                        "flex items-center gap-2.5 px-6 py-3 rounded-xl transition-all duration-300 font-black text-[9px] tracking-widest uppercase",
+                                        "flex items-center gap-2.5 px-6 py-2.5 rounded-xl transition-all duration-300 font-black text-[10px] tracking-widest uppercase",
                                         isActive
-                                            ? "bg-white dark:bg-slate-800 text-primary shadow-md border border-slate-100 dark:border-slate-700"
-                                            : "text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
+                                            ? "bg-primary text-white shadow-lg shadow-primary/20"
+                                            : "text-slate-500 hover:text-white"
                                     )}
                                 >
                                     <Icon size={14} strokeWidth={isActive ? 3 : 2} />
@@ -62,18 +61,24 @@ export default function Navbar() {
                         })}
                     </div>
 
-                    <button
-                        onClick={handleLogout}
-                        className="flex items-center gap-2 px-6 py-3 rounded-xl font-black text-[9px] tracking-widest text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all border border-transparent hover:border-rose-100"
-                    >
-                        <LogOut size={14} />
-                        <span>SAIR</span>
-                    </button>
+                    <div className="flex items-center gap-4 border-l border-white/10 pl-8">
+                        <button className="text-slate-500 hover:text-white transition-colors relative">
+                            <Bell size={20} />
+                            <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full border-2 border-[#0B0F17]" />
+                        </button>
+                        <button
+                            onClick={handleLogout}
+                            className="flex items-center gap-2 text-rose-500 font-black text-[10px] tracking-widest hover:text-rose-400 transition-colors uppercase"
+                        >
+                            <LogOut size={16} />
+                            <span>SAIR</span>
+                        </button>
+                    </div>
                 </div>
             </nav>
 
-            {/* Mobile Sidebar Navigation */}
-            <nav className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] bg-white dark:bg-slate-900 rounded-[2.5rem] h-20 z-[9999] px-8 flex items-center justify-between shadow-2xl border border-slate-100 dark:border-slate-800 transition-all duration-300">
+            {/* Mobile Bottom Navbar */}
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 h-24 bg-[#0B0F17]/95 backdrop-blur-2xl z-[100] px-8 flex items-center justify-between border-t border-white/5 pb-6">
                 {navItems.map((item) => {
                     const Icon = item.icon;
                     const isActive = pathname === item.href;
@@ -82,26 +87,27 @@ export default function Navbar() {
                             key={item.name}
                             href={item.href}
                             className={cn(
-                                "flex flex-col items-center justify-center transition-all duration-300",
-                                isActive
-                                    ? "text-primary scale-110"
-                                    : "text-slate-300 dark:text-slate-500 hover:text-primary dark:hover:text-slate-300"
+                                "flex flex-col items-center justify-center gap-1 transition-all",
+                                isActive ? "text-primary scale-110" : "text-slate-500 hover:text-slate-300"
                             )}
                         >
                             <Icon size={24} strokeWidth={isActive ? 3 : 2} />
-                            <span className="text-[8px] font-black mt-1 uppercase tracking-widest">{item.name}</span>
+                            <span className="text-[9px] font-black uppercase tracking-widest">{item.name}</span>
                         </Link>
                     );
                 })}
 
                 <button
                     onClick={handleLogout}
-                    className="flex flex-col items-center justify-center text-rose-400 hover:animate-pulse"
+                    className="flex flex-col items-center justify-center gap-1 text-rose-500/80"
                 >
                     <LogOut size={24} />
-                    <span className="text-[8px] font-black mt-1 uppercase tracking-widest">Sair</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest">SAIR</span>
                 </button>
             </nav>
+
+            {/* Support Spacers */}
+            <div className="h-20 hidden md:block" />
         </>
     );
 }

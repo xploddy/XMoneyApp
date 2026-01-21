@@ -123,34 +123,32 @@ export default function SettingsPage() {
         }
     };
 
-    const handleBackup = () => {
-        const data = localStorage.getItem("xmoney_transactions") || "[]";
-        const blob = new Blob([data], { type: "application/json" });
+    const handleBackup = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+
+        const { data, error } = await supabase
+            .from('transactions')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .order('date', { ascending: false });
+
+        if (error) {
+            alert("Erro ao gerar backup: " + error.message);
+            return;
+        }
+
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = `xfinance_backup_${new Date().toISOString().split('T')[0]}.json`;
+        link.download = `xfinance_backup_nuvem_${new Date().toISOString().split('T')[0]}.json`;
         link.click();
         URL.revokeObjectURL(url);
     };
 
-    const handleRestore = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            try {
-                const content = event.target?.result as string;
-                const data = JSON.parse(content);
-                if (Array.isArray(data)) {
-                    localStorage.setItem("xmoney_transactions", content);
-                    alert("Base de dados restaurada com sucesso!");
-                    window.location.reload();
-                } else throw new Error();
-            } catch (err) { alert("Arquivo inválido."); }
-        };
-        reader.readAsText(file);
+    const handleRestore = () => {
+        alert("A restauração via arquivo está desativada por segurança. Seus dados são sincronizados automaticamente na nuvem Supabase. Para importação em massa, contate o administrador.");
     };
 
     const tabs = [

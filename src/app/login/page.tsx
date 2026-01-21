@@ -182,27 +182,65 @@ export default function LoginPage() {
                             </button>
                         </form>
                     ) : (
-                        <div className="space-y-8 py-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            <div className="text-center space-y-3">
-                                <div className="w-16 h-16 bg-primary/10 dark:bg-primary/20 rounded-[2rem] flex items-center justify-center mx-auto text-primary">
-                                    <UserPlus size={32} />
+                        <form onSubmit={handleSubmit} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <div className="space-y-2.5">
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-4">Nome Completo</label>
+                                <div className="relative group">
+                                    <User className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors" size={18} />
+                                    <input
+                                        type="text" required value={name} onChange={(e) => setName(e.target.value)}
+                                        placeholder="Ex: Alexandre H."
+                                        className="w-full bg-slate-50 dark:bg-slate-950/50 border-2 border-slate-100 dark:border-white/5 rounded-[1.5rem] py-5 pl-16 pr-6 font-bold outline-none focus:border-primary/50 focus:bg-white dark:focus:bg-slate-950 transition-all text-slate-900 dark:text-white text-sm"
+                                    />
                                 </div>
-                                <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Solicitação de Ativo</h3>
-                                <p className="text-sm text-slate-500 dark:text-slate-400 font-bold leading-relaxed px-4">
-                                    O XFinance é um terminal privado. Para obter acesso, contate o administrador do fundo para inclusão manual de credenciais.
-                                </p>
                             </div>
 
-                            <div className="p-6 bg-slate-50 dark:bg-slate-950/50 rounded-2xl border border-slate-200 dark:border-white/5 space-y-4">
-                                <p className="text-[9px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-widest text-center">Protocolo de Segurança</p>
-                                <button
-                                    onClick={() => setMode("login")}
-                                    className="w-full py-4 rounded-xl border-2 border-slate-200 dark:border-white/10 text-slate-400 dark:text-slate-500 font-black text-[10px] uppercase tracking-widest hover:border-primary hover:text-primary transition-all"
-                                >
-                                    Voltar ao Login
-                                </button>
+                            <div className="space-y-2.5">
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-4">E-mail de Acesso</label>
+                                <div className="relative group">
+                                    <Mail className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors" size={18} />
+                                    <input
+                                        type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+                                        placeholder="seu@email.com"
+                                        className="w-full bg-slate-50 dark:bg-slate-950/50 border-2 border-slate-100 dark:border-white/5 rounded-[1.5rem] py-5 pl-16 pr-6 font-bold outline-none focus:border-primary/50 focus:bg-white dark:focus:bg-slate-950 transition-all text-slate-900 dark:text-white text-sm"
+                                    />
+                                </div>
                             </div>
-                        </div>
+
+                            <div className="space-y-2.5">
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-4">Nova Senha</label>
+                                <div className="relative group">
+                                    <Lock className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors" size={18} />
+                                    <input
+                                        type="password" required value={password} onChange={(e) => setPassword(e.target.value)}
+                                        placeholder="••••••••"
+                                        className="w-full bg-slate-50 dark:bg-slate-950/50 border-2 border-slate-100 dark:border-white/5 rounded-[1.5rem] py-5 pl-16 pr-6 font-bold outline-none focus:border-primary/50 focus:bg-white dark:focus:bg-slate-950 transition-all text-slate-900 dark:text-white text-sm"
+                                    />
+                                </div>
+                            </div>
+
+                            {error && (
+                                <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-center gap-3 animate-in fade-in zoom-in-95 duration-300">
+                                    <p className="text-rose-500 font-black text-[10px] uppercase tracking-widest leading-relaxed">
+                                        {error}
+                                    </p>
+                                </div>
+                            )}
+
+                            <button
+                                disabled={isLoading}
+                                className="w-full bg-gradient-to-r from-primary to-indigo-600 py-5 rounded-[1.5rem] font-black text-white shadow-2xl shadow-primary/20 flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 group"
+                            >
+                                {isLoading ? (
+                                    <Loader2 className="animate-spin" size={22} />
+                                ) : (
+                                    <>
+                                        <span className="text-[11px] tracking-[0.2em] uppercase">Criar Conta Master</span>
+                                        <UserPlus size={18} />
+                                    </>
+                                )}
+                            </button>
+                        </form>
                     )}
                 </div>
 
