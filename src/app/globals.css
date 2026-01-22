@@ -1,40 +1,64 @@
 @import "tailwindcss";
+@import "./light-theme-fixes.css";
 
 @theme {
-  /* XFinance Pro Color Palette - Softened */
-  --color-primary: #0066FF;
-  --color-primary-dark: #0052CC;
-  --color-secondary: #7000FF;
-  --color-success: #00FF94;
+  /* XMoney Color Palette */
+  --color-primary: #007AFF;
+  --color-primary-dark: #0051D5;
+  --color-secondary: #5856D6;
+  --color-success: #34C759;
   --color-danger: #FF3B30;
-  --color-warning: #FFCc00;
+  --color-warning: #FF9500;
   --color-surface: #0B0F17;
   --color-surface-soft: #161B26;
 }
 
-:root {
+/* Dark Theme (Default) */
+:root.dark {
   --background: #0B0F17;
   --foreground: #F8FAFC;
   --card-bg: #161B26;
   --card-border: rgba(255, 255, 255, 0.05);
 }
 
+/* Light Theme - Clean & Modern */
+:root:not(.dark) {
+  --background: #F8F9FA;
+  --foreground: #212529;
+  --card-bg: #FFFFFF;
+  --card-border: rgba(0, 0, 0, 0.08);
+}
+
 body {
-  background-color: #0B0F17 !important;
-  color: #F8FAFC !important;
-  font-family: var(--font-geist-sans), sans-serif;
+  background-color: var(--background) !important;
+  color: var(--foreground) !important;
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 @layer utilities {
   .premium-card {
-    background: #161B26;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
     border-radius: 2rem;
+    transition: all 0.3s ease;
+  }
+
+  /* Light theme card - Clean white */
+  :root:not(.dark) .premium-card {
+    background: #FFFFFF;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+    border: 1px solid #E9ECEF;
+  }
+
+  /* Dark theme card */
+  :root.dark .premium-card {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
   }
 
   .text-gradient {
-    background: linear-gradient(135deg, #0066FF 0%, #7000FF 100%);
+    background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -50,8 +74,73 @@ body {
   }
 
   .glass-card {
-    background: rgba(22, 27, 38, 0.7);
     backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--card-border);
+  }
+
+  :root:not(.dark) .glass-card {
+    background: rgba(255, 255, 255, 0.95);
+  }
+
+  :root.dark .glass-card {
+    background: rgba(22, 27, 38, 0.7);
+  }
+
+  /* Range Input - Modern Style */
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+    height: 6px;
+  }
+
+  input[type="range"]::-webkit-slider-track {
+    background: #E9ECEF;
+    height: 6px;
+    border-radius: 3px;
+  }
+
+  :root.dark input[type="range"]::-webkit-slider-track {
+    background: #334155;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 20px;
+    width: 20px;
+    background: #007AFF;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 2px 6px rgba(0, 122, 255, 0.3);
+    margin-top: -7px;
+  }
+
+  :root.dark input[type="range"]::-webkit-slider-thumb {
+    background: #0066FF;
+  }
+
+  input[type="range"]::-moz-range-track {
+    background: #E9ECEF;
+    height: 6px;
+    border-radius: 3px;
+  }
+
+  :root.dark input[type="range"]::-moz-range-track {
+    background: #334155;
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    height: 20px;
+    width: 20px;
+    background: #007AFF;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 2px 6px rgba(0, 122, 255, 0.3);
+  }
+
+  :root.dark input[type="range"]::-moz-range-thumb {
+    background: #0066FF;
   }
 }

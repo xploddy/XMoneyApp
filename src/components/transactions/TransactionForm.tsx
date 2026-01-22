@@ -21,9 +21,25 @@ export default function TransactionForm({ isOpen, onClose, onSubmit, onDelete, i
     const [paid, setPaid] = useState(true);
     const [isRecurring, setIsRecurring] = useState(false);
     const [installments, setInstallments] = useState(2);
+    const [categories, setCategories] = useState<string[]>(["Alimentação", "Lazer", "Aluguel", "Transporte", "Saúde", "Salário", "Assinaturas", "Outros"]);
 
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [isRecurringDelete, setIsRecurringDelete] = useState(false);
+
+    // Carregar categorias do localStorage
+    useEffect(() => {
+        const savedCategories = localStorage.getItem("xmoney_categories");
+        if (savedCategories) {
+            try {
+                const parsed = JSON.parse(savedCategories);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    setCategories(parsed);
+                }
+            } catch (e) {
+                console.error("Erro ao carregar categorias:", e);
+            }
+        }
+    }, []);
 
     useEffect(() => {
         if (initialData) {
@@ -141,14 +157,9 @@ export default function TransactionForm({ isOpen, onClose, onSubmit, onDelete, i
                                 onChange={(e) => setCategory(e.target.value)}
                                 className="w-full bg-slate-50/50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 py-3.5 px-5 rounded-2xl font-black text-xs outline-none focus:border-primary transition-all appearance-none shadow-inner"
                             >
-                                <option>Alimentação</option>
-                                <option>Lazer</option>
-                                <option>Aluguel</option>
-                                <option>Transporte</option>
-                                <option>Saúde</option>
-                                <option>Salário</option>
-                                <option>Assinaturas</option>
-                                <option>Outros</option>
+                                {categories.map(cat => (
+                                    <option key={cat} value={cat}>{cat}</option>
+                                ))}
                             </select>
                         </div>
                     </div>

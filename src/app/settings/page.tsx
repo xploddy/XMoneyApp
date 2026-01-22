@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { User, Database, Shield, Moon, Sun, Trash2, Download, Upload, CheckCircle2, Save, Users, Crown, Settings, LogOut, Bell, DollarSign, Calendar, Tag, Target, Lock, Eye, EyeOff, Palette, Globe } from "lucide-react";
+import { User, Database, Shield, Moon, Sun, Trash2, Download, Upload, CheckCircle2, Save, Users, Settings, LogOut, Bell, DollarSign, Tag, Target, Lock, Eye, EyeOff, Palette, BellRing, AlertTriangle, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -32,8 +32,24 @@ export default function SettingsPage() {
     const [newPassword, setNewPassword] = useState("");
     const [categories, setCategories] = useState<string[]>([]);
     const [newCategory, setNewCategory] = useState("");
+    const [categoryBudgets, setCategoryBudgets] = useState<Record<string, string>>({});
+    const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+    const [billReminders, setBillReminders] = useState(true);
+    const [highSpendingAlerts, setHighSpendingAlerts] = useState(true);
+    const [budgetAlertThreshold, setBudgetAlertThreshold] = useState("80");
+    const [financialGoals, setFinancialGoals] = useState<Array<{ id: string, name: string, target: string, deadline: string }>>([]);
+    const [newGoalName, setNewGoalName] = useState("");
+    const [newGoalTarget, setNewGoalTarget] = useState("");
+    const [newGoalDeadline, setNewGoalDeadline] = useState("");
     const fileInputRef = useRef<HTMLInputElement>(null);
     const router = useRouter();
+
+    // Aplicar tema imediatamente ao montar o componente
+    useEffect(() => {
+        const savedTheme = localStorage.getItem("xmoney_theme") || "system";
+        setTheme(savedTheme);
+        applyTheme(savedTheme);
+    }, []);
 
     useEffect(() => {
         const init = async () => {
@@ -73,6 +89,34 @@ export default function SettingsPage() {
                 setCategories(JSON.parse(savedCategories));
             } else {
                 setCategories(["Alimentação", "Lazer", "Aluguel", "Transporte", "Saúde", "Salário", "Assinaturas", "Outros"]);
+            }
+
+            const savedCategoryBudgets = localStorage.getItem("xmoney_category_budgets");
+            if (savedCategoryBudgets) {
+                setCategoryBudgets(JSON.parse(savedCategoryBudgets));
+            }
+
+            const savedNotifications = localStorage.getItem("xmoney_notifications_enabled");
+            if (savedNotifications !== null) {
+                setNotificationsEnabled(savedNotifications === "true");
+            }
+
+            const savedBillReminders = localStorage.getItem("xmoney_bill_reminders");
+            if (savedBillReminders !== null) {
+                setBillReminders(savedBillReminders === "true");
+            }
+
+            const savedHighSpending = localStorage.getItem("xmoney_high_spending_alerts");
+            if (savedHighSpending !== null) {
+                setHighSpendingAlerts(savedHighSpending === "true");
+            }
+
+            const savedBudgetThreshold = localStorage.getItem("xmoney_budget_threshold") || "80";
+            setBudgetAlertThreshold(savedBudgetThreshold);
+
+            const savedGoals = localStorage.getItem("xmoney_financial_goals");
+            if (savedGoals) {
+                setFinancialGoals(JSON.parse(savedGoals));
             }
 
             if (profile?.role === "ADMIN") {
@@ -125,11 +169,19 @@ export default function SettingsPage() {
         localStorage.setItem("xmoney_currency", currency);
         localStorage.setItem("xmoney_month_start", monthStartDay);
         localStorage.setItem("xmoney_categories", JSON.stringify(categories));
+        localStorage.setItem("xmoney_category_budgets", JSON.stringify(categoryBudgets));
+        localStorage.setItem("xmoney_notifications_enabled", notificationsEnabled.toString());
+        localStorage.setItem("xmoney_bill_reminders", billReminders.toString());
+        localStorage.setItem("xmoney_high_spending_alerts", highSpendingAlerts.toString());
+        localStorage.setItem("xmoney_budget_threshold", budgetAlertThreshold);
+        localStorage.setItem("xmoney_financial_goals", JSON.stringify(financialGoals));
         applyTheme(theme);
 
         if (!error) {
             setIsSaved(true);
             setTimeout(() => setIsSaved(false), 3000);
+        } else {
+            alert("Erro ao salvar: " + error.message);
         }
     };
 
@@ -158,6 +210,32 @@ export default function SettingsPage() {
 
     const removeCategory = (cat: string) => {
         setCategories(categories.filter(c => c !== cat));
+    };
+
+    const addFinancialGoal = () => {
+        if (newGoalName && newGoalTarget && newGoalDeadline) {
+            const newGoal = {
+                id: Date.now().toString(),
+                name: newGoalName,
+                target: newGoalTarget,
+                deadline: newGoalDeadline
+            };
+            setFinancialGoals([...financialGoals, newGoal]);
+            setNewGoalName("");
+            setNewGoalTarget("");
+            setNewGoalDeadline("");
+        }
+    };
+
+    const removeFinancialGoal = (id: string) => {
+        setFinancialGoals(financialGoals.filter(g => g.id !== id));
+    };
+
+    const updateCategoryBudget = (category: string, value: string) => {
+        setCategoryBudgets({
+            ...categoryBudgets,
+            [category]: value
+        });
     };
 
     const handleBackup = async () => {
@@ -287,7 +365,7 @@ export default function SettingsPage() {
             <header className="flex items-center justify-between">
                 <div className="space-y-1">
                     <h1 className="text-4xl font-black tracking-tighter text-slate-900 dark:text-white">Ajustes</h1>
-                    <p className="text-slate-500 font-bold text-[10px] tracking-widest uppercase">Configurações do Sistema</p>
+                    <p className="text-slate-500 dark:text-slate-500 font-bold text-[10px] tracking-widest uppercase">Configurações do Sistema</p>
                 </div>
                 <button
                     onClick={async () => {
@@ -300,7 +378,7 @@ export default function SettingsPage() {
                 </button>
             </header>
 
-            <div className="bg-slate-50 dark:bg-slate-900/50 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800 flex gap-2 overflow-x-auto scrollbar-hide">
+            <div className="bg-slate-100 dark:bg-slate-900/50 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800 flex gap-2 overflow-x-auto scrollbar-hide">
                 {tabs.filter(t => t.id !== 'usuarios' || userRole?.toUpperCase() === 'ADMIN').map((tab) => (
                     <button
                         key={tab.id}
@@ -308,7 +386,7 @@ export default function SettingsPage() {
                         className={cn(
                             "flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all flex-1 min-w-[100px]",
                             activeTab === tab.id
-                                ? "bg-white dark:bg-slate-800 text-primary shadow-xl shadow-primary/5 border border-slate-100 dark:border-slate-700"
+                                ? "bg-white dark:bg-slate-800 text-primary shadow-xl shadow-primary/5 border border-slate-200 dark:border-slate-700"
                                 : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                         )}
                     >
@@ -322,7 +400,7 @@ export default function SettingsPage() {
                 {/* CONTA E SEGURANÇA */}
                 {activeTab === "conta" && (
                     <div className="space-y-6 animate-in slide-in-from-bottom-5 duration-500">
-                        <section className="premium-card p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-8">
+                        <section className="premium-card p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-8 shadow-lg">
                             <div className="flex items-center gap-5">
                                 <div className="w-14 h-14 bg-primary/5 dark:bg-primary/10 rounded-2xl flex items-center justify-center text-primary"><User size={28} /></div>
                                 <div>
@@ -336,7 +414,7 @@ export default function SettingsPage() {
                                     <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] ml-1">Nome Completo</label>
                                     <input
                                         type="text" value={name} onChange={(e) => setName(e.target.value)}
-                                        className="w-full bg-slate-50/50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 py-4 px-6 rounded-2xl outline-none focus:border-primary font-black text-sm text-slate-900 dark:text-white transition-all shadow-inner"
+                                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 py-4 px-6 rounded-2xl outline-none focus:border-primary font-black text-sm text-slate-900 dark:text-white transition-all shadow-sm"
                                     />
                                 </div>
 
@@ -344,12 +422,12 @@ export default function SettingsPage() {
                                     <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] ml-1">E-mail</label>
                                     <input
                                         type="email" value={email} disabled
-                                        className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 py-4 px-6 rounded-2xl outline-none font-black text-sm text-slate-500 cursor-not-allowed shadow-inner"
+                                        className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 py-4 px-6 rounded-2xl outline-none font-black text-sm text-slate-500 cursor-not-allowed shadow-sm"
                                     />
                                 </div>
                             </div>
 
-                            <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
+                            <div className="pt-6 border-t border-slate-200 dark:border-slate-800">
                                 <div className="flex items-center gap-5 mb-6">
                                     <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-500"><Lock size={24} /></div>
                                     <div>
@@ -365,7 +443,7 @@ export default function SettingsPage() {
                                             value={newPassword}
                                             onChange={(e) => setNewPassword(e.target.value)}
                                             placeholder="Nova senha"
-                                            className="w-full bg-slate-50/50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 py-4 px-6 pr-12 rounded-2xl outline-none focus:border-primary font-black text-sm text-slate-900 dark:text-white transition-all shadow-inner"
+                                            className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 py-4 px-6 pr-12 rounded-2xl outline-none focus:border-primary font-black text-sm text-slate-900 dark:text-white transition-all shadow-sm"
                                         />
                                         <button
                                             type="button"
@@ -390,7 +468,7 @@ export default function SettingsPage() {
                 {/* PREFERÊNCIAS FINANCEIRAS */}
                 {activeTab === "preferencias" && (
                     <div className="space-y-6 animate-in slide-in-from-bottom-5 duration-500">
-                        <section className="premium-card p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-8">
+                        <section className="premium-card p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-8 shadow-lg">
                             <div className="flex items-center gap-5">
                                 <div className="w-14 h-14 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-500"><DollarSign size={28} /></div>
                                 <div>
@@ -405,7 +483,7 @@ export default function SettingsPage() {
                                     <select
                                         value={currency}
                                         onChange={(e) => setCurrency(e.target.value)}
-                                        className="w-full bg-slate-50/50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 py-4 px-6 rounded-2xl outline-none focus:border-primary font-black text-sm text-slate-900 dark:text-white transition-all shadow-inner appearance-none"
+                                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 py-4 px-6 rounded-2xl outline-none focus:border-primary font-black text-sm text-slate-900 dark:text-white transition-all shadow-sm appearance-none"
                                     >
                                         <option value="BRL">BRL - Real Brasileiro</option>
                                         <option value="USD">USD - Dólar Americano</option>
@@ -418,7 +496,7 @@ export default function SettingsPage() {
                                     <select
                                         value={monthStartDay}
                                         onChange={(e) => setMonthStartDay(e.target.value)}
-                                        className="w-full bg-slate-50/50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 py-4 px-6 rounded-2xl outline-none focus:border-primary font-black text-sm text-slate-900 dark:text-white transition-all shadow-inner appearance-none"
+                                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 py-4 px-6 rounded-2xl outline-none focus:border-primary font-black text-sm text-slate-900 dark:text-white transition-all shadow-sm appearance-none"
                                     >
                                         {Array.from({ length: 28 }, (_, i) => i + 1).map(day => (
                                             <option key={day} value={day}>Dia {day}</option>
@@ -427,7 +505,7 @@ export default function SettingsPage() {
                                 </div>
                             </div>
 
-                            <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
+                            <div className="pt-6 border-t border-slate-200 dark:border-slate-800">
                                 <div className="flex items-center gap-5 mb-6">
                                     <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500"><Tag size={24} /></div>
                                     <div>
@@ -442,7 +520,7 @@ export default function SettingsPage() {
                                         value={newCategory}
                                         onChange={(e) => setNewCategory(e.target.value)}
                                         placeholder="Nova categoria"
-                                        className="flex-1 bg-slate-50/50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 py-3 px-5 rounded-xl outline-none focus:border-primary font-black text-sm text-slate-900 dark:text-white transition-all shadow-inner"
+                                        className="flex-1 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 py-3 px-5 rounded-xl outline-none focus:border-primary font-black text-sm text-slate-900 dark:text-white transition-all shadow-sm"
                                     />
                                     <button
                                         onClick={addCategory}
@@ -454,7 +532,7 @@ export default function SettingsPage() {
 
                                 <div className="flex flex-wrap gap-2">
                                     {categories.map(cat => (
-                                        <div key={cat} className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-xl">
+                                        <div key={cat} className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700">
                                             <span className="text-xs font-black text-slate-700 dark:text-slate-300">{cat}</span>
                                             <button
                                                 onClick={() => removeCategory(cat)}
@@ -470,10 +548,10 @@ export default function SettingsPage() {
                     </div>
                 )}
 
-                {/* ORÇAMENTO E METAS */}
+                {/* ORÇAMENTO E METAS - EXPANDIDO */}
                 {activeTab === "orcamento" && (
                     <div className="space-y-6 animate-in slide-in-from-bottom-5 duration-500">
-                        <section className="premium-card p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-8">
+                        <section className="premium-card p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-8 shadow-lg">
                             <div className="flex items-center gap-5">
                                 <div className="w-14 h-14 bg-purple-500/10 rounded-2xl flex items-center justify-center text-purple-500"><Target size={28} /></div>
                                 <div>
@@ -482,35 +560,214 @@ export default function SettingsPage() {
                                 </div>
                             </div>
 
+                            {/* Orçamento Mensal Geral */}
                             <div className="space-y-2.5">
-                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] ml-1">Meta de Gastos Mensal</label>
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] ml-1">Orçamento Mensal Geral</label>
                                 <div className="relative">
                                     <span className="absolute left-6 top-1/2 -translate-y-1/2 font-black text-slate-300">R$</span>
                                     <input
                                         type="number"
                                         value={budgetGoal}
                                         onChange={(e) => setBudgetGoal(e.target.value)}
-                                        className="w-full bg-slate-50/50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 py-4 pl-12 pr-6 rounded-2xl outline-none focus:border-primary font-black text-sm text-slate-900 dark:text-white transition-all shadow-inner"
+                                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 py-4 pl-12 pr-6 rounded-2xl outline-none focus:border-primary font-black text-sm text-slate-900 dark:text-white transition-all shadow-sm"
                                         placeholder="0.00"
                                     />
+                                </div>
+                            </div>
+
+                            {/* Limite de Alerta */}
+                            <div className="space-y-2.5">
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] ml-1">Alerta ao Atingir (% do Orçamento)</label>
+                                <div className="flex items-center gap-4">
+                                    <input
+                                        type="range"
+                                        min="50"
+                                        max="100"
+                                        value={budgetAlertThreshold}
+                                        onChange={(e) => setBudgetAlertThreshold(e.target.value)}
+                                        className="flex-1 accent-primary"
+                                    />
+                                    <span className="text-2xl font-black text-primary w-16 text-right">{budgetAlertThreshold}%</span>
+                                </div>
+                            </div>
+
+                            {/* Orçamento por Categoria */}
+                            <div className="pt-6 border-t border-slate-200 dark:border-slate-800">
+                                <div className="flex items-center gap-5 mb-6">
+                                    <div className="w-12 h-12 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-500"><Tag size={24} /></div>
+                                    <div>
+                                        <h4 className="text-lg font-black text-slate-800 dark:text-white">Orçamento por Categoria</h4>
+                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Defina limites específicos</p>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {categories.map(cat => (
+                                        <div key={cat} className="space-y-2">
+                                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider ml-1">{cat}</label>
+                                            <div className="relative">
+                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-xs text-slate-300">R$</span>
+                                                <input
+                                                    type="number"
+                                                    value={categoryBudgets[cat] || ""}
+                                                    onChange={(e) => updateCategoryBudget(cat, e.target.value)}
+                                                    className="w-full bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 py-3 pl-10 pr-4 rounded-xl outline-none focus:border-primary font-bold text-sm text-slate-900 dark:text-white transition-all"
+                                                    placeholder="0.00"
+                                                />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Metas Financeiras */}
+                            <div className="pt-6 border-t border-slate-200 dark:border-slate-800">
+                                <div className="flex items-center gap-5 mb-6">
+                                    <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-500"><Target size={24} /></div>
+                                    <div>
+                                        <h4 className="text-lg font-black text-slate-800 dark:text-white">Metas Financeiras</h4>
+                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Objetivos com prazo</p>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+                                    <input
+                                        type="text"
+                                        value={newGoalName}
+                                        onChange={(e) => setNewGoalName(e.target.value)}
+                                        placeholder="Nome da meta"
+                                        className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 py-3 px-5 rounded-xl outline-none focus:border-primary font-black text-sm text-slate-900 dark:text-white transition-all"
+                                    />
+                                    <input
+                                        type="number"
+                                        value={newGoalTarget}
+                                        onChange={(e) => setNewGoalTarget(e.target.value)}
+                                        placeholder="Valor alvo"
+                                        className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 py-3 px-5 rounded-xl outline-none focus:border-primary font-black text-sm text-slate-900 dark:text-white transition-all"
+                                    />
+                                    <input
+                                        type="date"
+                                        value={newGoalDeadline}
+                                        onChange={(e) => setNewGoalDeadline(e.target.value)}
+                                        className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 py-3 px-5 rounded-xl outline-none focus:border-primary font-black text-sm text-slate-900 dark:text-white transition-all"
+                                    />
+                                </div>
+
+                                <button
+                                    onClick={addFinancialGoal}
+                                    className="w-full md:w-auto px-6 py-3 bg-emerald-500 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-600 transition-all mb-4"
+                                >
+                                    Adicionar Meta
+                                </button>
+
+                                <div className="space-y-3">
+                                    {financialGoals.map(goal => (
+                                        <div key={goal.id} className="p-5 bg-slate-50 dark:bg-slate-950/50 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                                            <div>
+                                                <h5 className="font-black text-sm text-slate-900 dark:text-white">{goal.name}</h5>
+                                                <p className="text-xs text-slate-500 mt-1">
+                                                    <span className="font-bold text-emerald-500">R$ {parseFloat(goal.target).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                                    {" • "}
+                                                    <span className="font-bold">{format(new Date(goal.deadline), "dd/MM/yyyy")}</span>
+                                                </p>
+                                            </div>
+                                            <button
+                                                onClick={() => removeFinancialGoal(goal.id)}
+                                                className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-all"
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         </section>
                     </div>
                 )}
 
-                {/* NOTIFICAÇÕES */}
+                {/* NOTIFICAÇÕES - EXPANDIDO */}
                 {activeTab === "notificacoes" && (
                     <div className="space-y-6 animate-in slide-in-from-bottom-5 duration-500">
-                        <section className="premium-card p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-6">
+                        <section className="premium-card p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-6 shadow-lg">
                             <div className="flex items-center gap-5">
                                 <div className="w-14 h-14 bg-orange-500/10 rounded-2xl flex items-center justify-center text-orange-500"><Bell size={28} /></div>
                                 <div>
                                     <h3 className="text-xl font-black text-slate-800 dark:text-white">Notificações</h3>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Em desenvolvimento</p>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Alertas e lembretes</p>
                                 </div>
                             </div>
-                            <p className="text-sm text-slate-500">Funcionalidade de notificações será implementada em breve.</p>
+
+                            {/* Toggle Principal */}
+                            <div className="flex items-center justify-between p-5 bg-slate-50 dark:bg-slate-950/50 rounded-2xl border border-slate-200 dark:border-slate-800">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-orange-500/10 rounded-xl flex items-center justify-center text-orange-500">
+                                        <BellRing size={24} />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-black text-sm text-slate-900 dark:text-white">Ativar Notificações</h4>
+                                        <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Sistema de alertas geral</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setNotificationsEnabled(!notificationsEnabled)}
+                                    className={cn(
+                                        "relative w-14 h-8 rounded-full transition-all",
+                                        notificationsEnabled ? "bg-primary" : "bg-slate-200 dark:bg-slate-700"
+                                    )}
+                                >
+                                    <div className={cn(
+                                        "absolute top-1 w-6 h-6 bg-white rounded-full shadow-md transition-all",
+                                        notificationsEnabled ? "right-1" : "left-1"
+                                    )} />
+                                </button>
+                            </div>
+
+                            {/* Opções Específicas */}
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-950/50 rounded-xl border border-slate-200 dark:border-slate-800">
+                                    <div className="flex items-center gap-3">
+                                        <Calendar size={20} className="text-blue-500" />
+                                        <div>
+                                            <h5 className="font-black text-sm text-slate-900 dark:text-white">Lembretes de Contas</h5>
+                                            <p className="text-[9px] text-slate-500 font-bold">Avisos de vencimento</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setBillReminders(!billReminders)}
+                                        className={cn(
+                                            "relative w-12 h-7 rounded-full transition-all",
+                                            billReminders ? "bg-blue-500" : "bg-slate-200 dark:bg-slate-700"
+                                        )}
+                                    >
+                                        <div className={cn(
+                                            "absolute top-0.5 w-6 h-6 bg-white rounded-full shadow-md transition-all",
+                                            billReminders ? "right-0.5" : "left-0.5"
+                                        )} />
+                                    </button>
+                                </div>
+
+                                <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-950/50 rounded-xl border border-slate-200 dark:border-slate-800">
+                                    <div className="flex items-center gap-3">
+                                        <AlertTriangle size={20} className="text-amber-500" />
+                                        <div>
+                                            <h5 className="font-black text-sm text-slate-900 dark:text-white">Alertas de Gastos Elevados</h5>
+                                            <p className="text-[9px] text-slate-500 font-bold">Quando ultrapassar o limite</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setHighSpendingAlerts(!highSpendingAlerts)}
+                                        className={cn(
+                                            "relative w-12 h-7 rounded-full transition-all",
+                                            highSpendingAlerts ? "bg-amber-500" : "bg-slate-200 dark:bg-slate-700"
+                                        )}
+                                    >
+                                        <div className={cn(
+                                            "absolute top-0.5 w-6 h-6 bg-white rounded-full shadow-md transition-all",
+                                            highSpendingAlerts ? "right-0.5" : "left-0.5"
+                                        )} />
+                                    </button>
+                                </div>
+                            </div>
                         </section>
                     </div>
                 )}
@@ -518,7 +775,7 @@ export default function SettingsPage() {
                 {/* APARÊNCIA */}
                 {activeTab === "aparencia" && (
                     <div className="space-y-6 animate-in slide-in-from-bottom-5 duration-500">
-                        <section className="premium-card p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-8">
+                        <section className="premium-card p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-8 shadow-lg">
                             <div className="flex items-center gap-5">
                                 <div className="w-14 h-14 bg-pink-500/10 rounded-2xl flex items-center justify-center text-pink-500"><Palette size={28} /></div>
                                 <div>
@@ -531,20 +788,28 @@ export default function SettingsPage() {
                                 <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] ml-1">Tema do Sistema</label>
                                 <div className="grid grid-cols-3 gap-3">
                                     {[
-                                        { id: "light", icon: Sun, label: "CLARO" },
-                                        { id: "dark", icon: Moon, label: "ESCURO" },
-                                        { id: "system", icon: Settings, label: "AUTO" }
+                                        { id: "light", icon: Sun, label: "CLARO", desc: "Modo Dia" },
+                                        { id: "dark", icon: Moon, label: "ESCURO", desc: "Modo Noite" },
+                                        { id: "system", icon: Settings, label: "AUTO", desc: "Sistema" }
                                     ].map((t) => (
                                         <button
-                                            key={t.id} onClick={() => setTheme(t.id)}
+                                            key={t.id}
+                                            onClick={() => {
+                                                setTheme(t.id);
+                                                applyTheme(t.id);
+                                            }}
                                             className={cn(
-                                                "flex flex-col items-center justify-center gap-2 py-6 rounded-2xl font-black text-[8px] uppercase border-2 transition-all",
+                                                "flex flex-col items-center justify-center gap-3 py-6 rounded-2xl font-black text-[8px] uppercase border-2 transition-all",
                                                 theme === t.id
                                                     ? "bg-primary text-white border-primary shadow-lg shadow-primary/20"
-                                                    : "bg-white dark:bg-slate-950 text-slate-400 border-slate-100 dark:border-slate-800 hover:border-slate-200"
+                                                    : "bg-white dark:bg-slate-950 text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
                                             )}
                                         >
-                                            <t.icon size={20} /> {t.label}
+                                            <t.icon size={24} strokeWidth={2.5} />
+                                            <div className="text-center">
+                                                <div className="font-black">{t.label}</div>
+                                                <div className="text-[7px] opacity-70 mt-0.5">{t.desc}</div>
+                                            </div>
                                         </button>
                                     ))}
                                 </div>
@@ -556,7 +821,7 @@ export default function SettingsPage() {
                 {/* DADOS E BACKUP */}
                 {activeTab === "dados" && (
                     <div className="space-y-6 animate-in slide-in-from-bottom-5 duration-500">
-                        <section className="premium-card p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-8">
+                        <section className="premium-card p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-8 shadow-lg">
                             <div className="flex items-center gap-5">
                                 <div className="w-14 h-14 bg-cyan-500/10 rounded-2xl flex items-center justify-center text-cyan-500"><Database size={28} /></div>
                                 <div>
@@ -566,14 +831,14 @@ export default function SettingsPage() {
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <button onClick={handleBackup} className="flex flex-col items-center justify-center gap-5 p-8 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl group hover:border-primary transition-all bg-slate-50/50 dark:bg-slate-950/20">
+                                <button onClick={handleBackup} className="flex flex-col items-center justify-center gap-5 p-8 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl group hover:border-primary transition-all bg-slate-50 dark:bg-slate-950/20">
                                     <Download size={32} className="text-slate-300 group-hover:text-primary transition-all transform group-hover:-translate-y-1" />
                                     <div className="text-center">
                                         <p className="font-black text-xs uppercase tracking-[0.2em] text-slate-900 dark:text-white">Exportar Dados</p>
                                         <p className="text-[8px] text-slate-400 font-bold uppercase mt-1 tracking-widest">Backup Excel</p>
                                     </div>
                                 </button>
-                                <button onClick={() => fileInputRef.current?.click()} className="flex flex-col items-center justify-center gap-5 p-8 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl group hover:border-emerald-500 transition-all bg-slate-50/50 dark:bg-slate-950/20">
+                                <button onClick={() => fileInputRef.current?.click()} className="flex flex-col items-center justify-center gap-5 p-8 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl group hover:border-emerald-500 transition-all bg-slate-50 dark:bg-slate-950/20">
                                     <Upload size={32} className="text-slate-300 group-hover:text-emerald-500 transition-all transform group-hover:-translate-y-1" />
                                     <div className="text-center">
                                         <p className="font-black text-xs uppercase tracking-[0.2em] text-slate-900 dark:text-white">Importar Dados</p>
@@ -589,7 +854,7 @@ export default function SettingsPage() {
                 {/* EQUIPE (ADMIN) */}
                 {activeTab === "usuarios" && userRole === "ADMIN" && (
                     <div className="space-y-6 animate-in slide-in-from-bottom-5 duration-500">
-                        <section className="premium-card p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-6">
+                        <section className="premium-card p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-6 shadow-lg">
                             <div className="flex items-center gap-5">
                                 <div className="w-14 h-14 bg-amber-500/10 rounded-2xl flex items-center justify-center text-amber-500"><Shield size={28} /></div>
                                 <div>
@@ -600,7 +865,7 @@ export default function SettingsPage() {
 
                             <div className="space-y-3">
                                 {users.map(u => (
-                                    <div key={u.id} className="p-5 bg-slate-50 dark:bg-slate-950/50 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                                    <div key={u.id} className="p-5 bg-slate-50 dark:bg-slate-950/50 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center justify-between">
                                         <div className="flex items-center gap-4">
                                             <div className={cn(
                                                 "w-12 h-12 rounded-xl flex items-center justify-center font-black text-sm",
@@ -636,8 +901,8 @@ export default function SettingsPage() {
                     className={cn(
                         "flex items-center gap-3 px-8 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-2xl transition-all",
                         isSaved
-                            ? "bg-emerald-500 text-white"
-                            : "bg-primary text-white hover:scale-105"
+                            ? "bg-emerald-500 text-white scale-110"
+                            : "bg-primary text-white hover:scale-105 active:scale-95"
                     )}
                 >
                     {isSaved ? (
