@@ -144,7 +144,7 @@ export default function SettingsPage() {
         const root = document.documentElement;
         if (newTheme === "dark") {
             root.classList.add("dark");
-        } else if (newTheme === "dark") {
+        } else if (newTheme === "light") {
             root.classList.remove("dark");
         } else {
             if (window.matchMedia("(prefers-color-scheme: dark)").matches) {

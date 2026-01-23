@@ -11,7 +11,7 @@
 
 #### 1. **Cores Base (globals.css)**
 ```css
-:root:not(.dark) {
+:root.light {
   --background: #F8F9FA;      /* Fundo cinza muito claro */
   --foreground: #212529;       /* Texto escuro principal */
   --card-bg: #FFFFFF;          /* Cards brancos puros */

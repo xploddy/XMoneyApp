@@ -1,163 +1,135 @@
-/* Correções de cores para tema claro - Adicione ao final do globals.css */
+/* Correções de cores para tema claro */
 
 /* Garantir que TODOS os textos sejam escuros no tema claro */
-:root:not(.dark) {
-    /* Textos principais */
+:root.light {
     --tw-prose-body: #212529;
     --tw-prose-headings: #212529;
 }
 
 /* Forçar textos escuros no tema claro */
-:root:not(.dark) .text-slate-500 {
+:root.light .text-slate-500 {
     color: #6C757D !important;
 }
 
-:root:not(.dark) .text-slate-400 {
+:root.light .text-slate-400 {
     color: #495057 !important;
 }
 
-:root:not(.dark) .text-slate-300 {
+:root.light .text-slate-300 {
     color: #6C757D !important;
 }
 
-:root:not(.dark) .dark\:text-slate-500 {
-    color: inherit;
-}
-
-/* Inputs e selects no tema claro */
-:root:not(.dark) input,
-:root:not(.dark) select,
-:root:not(.dark) textarea {
+/* Inputs e selects */
+:root.light input,
+:root.light select,
+:root.light textarea {
     color: #212529 !important;
 }
 
-:root:not(.dark) input::placeholder {
+:root.light input::placeholder {
     color: #ADB5BD !important;
 }
 
-/* Backgrounds de inputs no tema claro */
-:root:not(.dark) .bg-slate-50,
-:root:not(.dark) .bg-slate-50\/50 {
+/* Backgrounds */
+:root.light .bg-slate-50,
+:root.light .bg-slate-50\/50 {
     background-color: #F8F9FA !important;
 }
 
-:root:not(.dark) .bg-slate-100 {
+:root.light .bg-slate-100 {
     background-color: #E9ECEF !important;
 }
 
-:root:not(.dark) .bg-slate-950 {
+:root.light .bg-slate-950 {
     background-color: #FFFFFF !important;
 }
 
-/* Bordas no tema claro */
-:root:not(.dark) .border-slate-100,
-:root:not(.dark) .border-slate-200 {
+/* Bordas */
+:root.light .border-slate-100,
+:root.light .border-slate-200,
+:root.light .border-slate-800 {
     border-color: #DEE2E6 !important;
 }
 
-:root:not(.dark) .border-slate-800 {
-    border-color: #DEE2E6 !important;
-}
-
-/* Títulos e headers */
-:root:not(.dark) h1,
-:root:not(.dark) h2,
-:root:not(.dark) h3,
-:root:not(.dark) h4,
-:root:not(.dark) h5,
-:root:not(.dark) h6 {
+/* Títulos */
+:root.light h1,
+:root.light h2,
+:root.light h3,
+:root.light h4,
+:root.light h5,
+:root.light h6 {
     color: #212529 !important;
 }
 
-/* Labels e small text */
-:root:not(.dark) label {
+/* Labels */
+:root.light label {
     color: #495057 !important;
 }
 
-/* Botões de texto */
-:root:not(.dark) button {
-    color: inherit;
-}
-
-/* Cards e containers */
-:root:not(.dark) .bg-slate-900,
-:root:not(.dark) .dark\:bg-slate-900 {
+/* Cards */
+:root.light .bg-slate-900,
+:root.light .bg-slate-900\/50,
+:root.light .bg-slate-950\/50 {
     background-color: #FFFFFF !important;
 }
 
-:root:not(.dark) .bg-slate-900\/50,
-:root:not(.dark) .dark\:bg-slate-900\/50 {
-    background-color: #F8F9FA !important;
-}
-
-:root:not(.dark) .bg-slate-950\/50,
-:root:not(.dark) .dark\:bg-slate-950\/50 {
-    background-color: #F8F9FA !important;
-}
-
-/* Text colors específicos */
-:root:not(.dark) .text-white,
-:root:not(.dark) .dark\:text-white {
+/* Text colors */
+:root.light .text-white,
+:root.light .text-slate-900,
+:root.light .text-slate-800 {
     color: #212529 !important;
 }
 
-:root:not(.dark) .text-slate-900,
-:root:not(.dark) .dark\:text-slate-900 {
-    color: #212529 !important;
-}
-
-:root:not(.dark) .text-slate-800,
-:root:not(.dark) .dark\:text-slate-800 {
-    color: #212529 !important;
-}
-
-:root:not(.dark) .text-slate-700 {
+:root.light .text-slate-700 {
     color: #343A40 !important;
 }
 
-:root:not(.dark) .text-slate-600 {
+:root.light .text-slate-600 {
     color: #495057 !important;
 }
 
-/* Exceções para cores de status */
-:root:not(.dark) .text-primary {
+/* Status colors */
+:root.light .text-primary {
     color: #007AFF !important;
 }
 
-:root:not(.dark) .text-emerald-500 {
+:root.light .text-emerald-500 {
     color: #34C759 !important;
 }
 
-:root:not(.dark) .text-rose-500,
-:root:not(.dark) .text-rose-600 {
+:root.light .text-rose-500,
+:root.light .text-rose-600 {
     color: #FF3B30 !important;
 }
 
-:root:not(.dark) .text-amber-500,
-:root:not(.dark) .text-amber-600 {
+:root.light .text-amber-500,
+:root.light .text-amber-600 {
     color: #FF9500 !important;
 }
 
-:root:not(.dark) .text-blue-500 {
+:root.light .text-blue-500 {
     color: #007AFF !important;
 }
 
-:root:not(.dark) .text-purple-500 {
+:root.light .text-purple-500 {
     color: #5856D6 !important;
 }
 
-:root:not(.dark) .text-orange-500 {
-    color: #FF9500 !important;
-}
-
-:root:not(.dark) .text-cyan-500 {
-    color: #32ADE6 !important;
-}
-
-:root:not(.dark) .text-pink-500 {
+:root.light .text-pink-500 {
     color: #FF2D55 !important;
 }
 
-:root:not(.dark) .text-indigo-500 {
+:root.light .text-cyan-500 {
+    color: #32ADE6 !important;
+}
+
+:root.light .text-indigo-500 {
     color: #5856D6 !important;
+}
+
+/* 🔥 FORÇA ABSOLUTA DE TEXTO PRETO NO TEMA CLARO */
+html.light,
+html.light body,
+html.light body * {
+    color: #212529 !important;
 }

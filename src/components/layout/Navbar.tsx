@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, List, Settings, LogOut, Bell, Wallet } from "lucide-react";
+import { LayoutDashboard, List, Settings, LogOut, Bell, Wallet, Sun, Moon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 
@@ -24,10 +24,25 @@ export default function Navbar() {
         router.refresh();
     };
 
+    // Função para alternar tema
+    const toggleTheme = () => {
+        const html = document.documentElement;
+        if (html.classList.contains("dark")) {
+            html.classList.replace("dark", "light");
+            localStorage.setItem("theme", "light");
+        } else {
+            html.classList.replace("light", "dark");
+            localStorage.setItem("theme", "dark");
+        }
+    };
+
+    // Detecta tema atual para alternar ícone
+    const currentTheme = typeof window !== "undefined" && document.documentElement.classList.contains("dark") ? "dark" : "light";
+
     return (
         <>
             {/* Desktop Navbar */}
-            <nav className="hidden md:flex fixed top-0 left-0 right-0 h-20 bg-[#0B0F17]/80 backdrop-blur-xl z-[100] px-12 items-center justify-between border-b border-white/5">
+            <nav className="hidden md:flex fixed top-0 left-0 right-0 h-20 bg-[#0B0F17]/80 dark:bg-[#F8FAFC]/80 backdrop-blur-xl z-[100] px-12 items-center justify-between border-b border-white/5">
                 <Link href="/" className="flex items-center gap-4 group">
                     <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/30 group-hover:rotate-6 transition-all">
                         <Wallet className="text-white w-6 h-6" />
@@ -39,7 +54,7 @@ export default function Navbar() {
                 </Link>
 
                 <div className="flex items-center gap-8">
-                    <div className="flex items-center gap-2 bg-slate-900/50 p-1 rounded-2xl border border-white/5">
+                    <div className="flex items-center gap-2 bg-slate-900/50 dark:bg-slate-50/50 p-1 rounded-2xl border border-white/5">
                         {navItems.map((item) => {
                             const Icon = item.icon;
                             const isActive = pathname === item.href;
@@ -51,7 +66,7 @@ export default function Navbar() {
                                         "flex items-center gap-2.5 px-6 py-2.5 rounded-xl transition-all duration-300 font-black text-[10px] tracking-widest uppercase",
                                         isActive
                                             ? "bg-primary text-white shadow-lg shadow-primary/20"
-                                            : "text-slate-500 hover:text-white"
+                                            : "text-slate-500 dark:text-slate-700 hover:text-white dark:hover:text-black"
                                     )}
                                 >
                                     <Icon size={14} strokeWidth={isActive ? 3 : 2} />
@@ -62,10 +77,21 @@ export default function Navbar() {
                     </div>
 
                     <div className="flex items-center gap-4 border-l border-white/10 pl-8">
-                        <button className="text-slate-500 hover:text-white transition-colors relative">
+                        {/* Notificações */}
+                        <button className="text-slate-500 hover:text-white transition-colors relative dark:text-slate-700 dark:hover:text-black">
                             <Bell size={20} />
-                            <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full border-2 border-[#0B0F17]" />
+                            <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full border-2 border-[#0B0F17] dark:border-[#F8FAFC]" />
                         </button>
+
+                        {/* Alternar tema */}
+                        <button
+                            onClick={toggleTheme}
+                            className="p-2 rounded-full hover:bg-slate-700/30 dark:hover:bg-slate-300/20 transition-colors"
+                        >
+                            {currentTheme === "dark" ? <Sun size={20} className="text-yellow-400" /> : <Moon size={20} className="text-gray-800" />}
+                        </button>
+
+                        {/* Logout */}
                         <button
                             onClick={handleLogout}
                             className="flex items-center gap-2 text-rose-500 font-black text-[10px] tracking-widest hover:text-rose-400 transition-colors uppercase"
@@ -78,7 +104,7 @@ export default function Navbar() {
             </nav>
 
             {/* Mobile Bottom Navbar */}
-            <nav className="md:hidden fixed bottom-0 left-0 right-0 h-24 bg-[#0B0F17]/95 backdrop-blur-2xl z-[100] px-8 flex items-center justify-between border-t border-white/5 pb-6">
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 h-24 bg-[#0B0F17]/95 dark:bg-[#F8FAFC]/95 backdrop-blur-2xl z-[100] px-8 flex items-center justify-between border-t border-white/5 pb-6">
                 {navItems.map((item) => {
                     const Icon = item.icon;
                     const isActive = pathname === item.href;
@@ -88,7 +114,7 @@ export default function Navbar() {
                             href={item.href}
                             className={cn(
                                 "flex flex-col items-center justify-center gap-1 transition-all",
-                                isActive ? "text-primary scale-110" : "text-slate-500 hover:text-slate-300"
+                                isActive ? "text-primary scale-110" : "text-slate-500 dark:text-slate-700 hover:text-slate-300 dark:hover:text-black"
                             )}
                         >
                             <Icon size={24} strokeWidth={isActive ? 3 : 2} />
@@ -97,6 +123,7 @@ export default function Navbar() {
                     );
                 })}
 
+                {/* Logout Mobile */}
                 <button
                     onClick={handleLogout}
                     className="flex flex-col items-center justify-center gap-1 text-rose-500/80"
@@ -106,7 +133,7 @@ export default function Navbar() {
                 </button>
             </nav>
 
-            {/* Support Spacers */}
+            {/* Support Spacer */}
             <div className="h-20 hidden md:block" />
         </>
     );
