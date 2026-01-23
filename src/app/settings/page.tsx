@@ -142,18 +142,19 @@ export default function SettingsPage() {
 
     const applyTheme = (newTheme: string) => {
         const root = document.documentElement;
+
+        root.classList.remove("dark", "light");
+
         if (newTheme === "dark") {
             root.classList.add("dark");
         } else if (newTheme === "light") {
-            root.classList.remove("dark");
+            root.classList.add("light");
         } else {
-            if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-                root.classList.add("dark");
-            } else {
-                root.classList.remove("dark");
-            }
+            const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+            root.classList.add(prefersDark ? "dark" : "light");
         }
     };
+
 
     const handleSave = async () => {
         const { data: { session } } = await supabase.auth.getSession();
@@ -378,7 +379,7 @@ export default function SettingsPage() {
                 </button>
             </header>
 
-            <div className="bg-slate-100 dark:bg-slate-900/50 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800 flex gap-2 overflow-x-auto scrollbar-hide">
+            <div className="bg-[var(--card-bg)]/60 p-1.5 rounded-2xl border border-[var(--card-border)] flex gap-2 overflow-x-auto scrollbar-hide">
                 {tabs.filter(t => t.id !== 'usuarios' || userRole?.toUpperCase() === 'ADMIN').map((tab) => (
                     <button
                         key={tab.id}
@@ -386,8 +387,8 @@ export default function SettingsPage() {
                         className={cn(
                             "flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all flex-1 min-w-[100px]",
                             activeTab === tab.id
-                                ? "bg-white dark:bg-slate-800 text-primary shadow-xl shadow-primary/5 border border-slate-200 dark:border-slate-700"
-                                : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                                ? "bg-[var(--card-bg)] text-primary shadow-md border border-[var(--card-border)]"
+                                : "text-slate-500 hover:text-foreground hover:bg-[color-mix(in srgb, var(--card-bg) 92%, transparent)]"
                         )}
                     >
                         <tab.icon size={14} />
@@ -400,7 +401,7 @@ export default function SettingsPage() {
                 {/* CONTA E SEGURANÇA */}
                 {activeTab === "conta" && (
                     <div className="space-y-6 animate-in slide-in-from-bottom-5 duration-500">
-                        <section className="premium-card p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-8 shadow-lg">
+                        <section className="premium-card p-8 rounded-[2.5rem] bg-[var(--card-bg)] border border-slate-200 dark:border-slate-800 space-y-8 shadow-lg">
                             <div className="flex items-center gap-5">
                                 <div className="w-14 h-14 bg-primary/5 dark:bg-primary/10 rounded-2xl flex items-center justify-center text-primary"><User size={28} /></div>
                                 <div>
@@ -468,7 +469,7 @@ export default function SettingsPage() {
                 {/* PREFERÊNCIAS FINANCEIRAS */}
                 {activeTab === "preferencias" && (
                     <div className="space-y-6 animate-in slide-in-from-bottom-5 duration-500">
-                        <section className="premium-card p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-8 shadow-lg">
+                        <section className="premium-card p-8 rounded-[2.5rem] bg-[var(--card-bg)] border border-slate-200 dark:border-slate-800 space-y-8 shadow-lg">
                             <div className="flex items-center gap-5">
                                 <div className="w-14 h-14 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-500"><DollarSign size={28} /></div>
                                 <div>
@@ -551,7 +552,7 @@ export default function SettingsPage() {
                 {/* ORÇAMENTO E METAS - EXPANDIDO */}
                 {activeTab === "orcamento" && (
                     <div className="space-y-6 animate-in slide-in-from-bottom-5 duration-500">
-                        <section className="premium-card p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-8 shadow-lg">
+                        <section className="premium-card p-8 rounded-[2.5rem] bg-[var(--card-bg)] border border-slate-200 dark:border-slate-800 space-y-8 shadow-lg">
                             <div className="flex items-center gap-5">
                                 <div className="w-14 h-14 bg-purple-500/10 rounded-2xl flex items-center justify-center text-purple-500"><Target size={28} /></div>
                                 <div>
@@ -688,7 +689,7 @@ export default function SettingsPage() {
                 {/* NOTIFICAÇÕES - EXPANDIDO */}
                 {activeTab === "notificacoes" && (
                     <div className="space-y-6 animate-in slide-in-from-bottom-5 duration-500">
-                        <section className="premium-card p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-6 shadow-lg">
+                        <section className="premium-card p-8 rounded-[2.5rem] bg-[var(--card-bg)] border border-slate-200 dark:border-slate-800 space-y-6 shadow-lg">
                             <div className="flex items-center gap-5">
                                 <div className="w-14 h-14 bg-orange-500/10 rounded-2xl flex items-center justify-center text-orange-500"><Bell size={28} /></div>
                                 <div>
@@ -775,7 +776,7 @@ export default function SettingsPage() {
                 {/* APARÊNCIA */}
                 {activeTab === "aparencia" && (
                     <div className="space-y-6 animate-in slide-in-from-bottom-5 duration-500">
-                        <section className="premium-card p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-8 shadow-lg">
+                        <section className="premium-card p-8 rounded-[2.5rem] bg-[var(--card-bg)] border border-slate-200 dark:border-slate-800 space-y-8 shadow-lg">
                             <div className="flex items-center gap-5">
                                 <div className="w-14 h-14 bg-pink-500/10 rounded-2xl flex items-center justify-center text-pink-500"><Palette size={28} /></div>
                                 <div>
@@ -821,7 +822,7 @@ export default function SettingsPage() {
                 {/* DADOS E BACKUP */}
                 {activeTab === "dados" && (
                     <div className="space-y-6 animate-in slide-in-from-bottom-5 duration-500">
-                        <section className="premium-card p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-8 shadow-lg">
+                        <section className="premium-card p-8 rounded-[2.5rem] bg-[var(--card-bg)] border border-slate-200 dark:border-slate-800 space-y-8 shadow-lg">
                             <div className="flex items-center gap-5">
                                 <div className="w-14 h-14 bg-cyan-500/10 rounded-2xl flex items-center justify-center text-cyan-500"><Database size={28} /></div>
                                 <div>
@@ -854,7 +855,7 @@ export default function SettingsPage() {
                 {/* EQUIPE (ADMIN) */}
                 {activeTab === "usuarios" && userRole === "ADMIN" && (
                     <div className="space-y-6 animate-in slide-in-from-bottom-5 duration-500">
-                        <section className="premium-card p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-6 shadow-lg">
+                        <section className="premium-card p-8 rounded-[2.5rem] bg-[var(--card-bg)] border border-slate-200 dark:border-slate-800 space-y-6 shadow-lg">
                             <div className="flex items-center gap-5">
                                 <div className="w-14 h-14 bg-amber-500/10 rounded-2xl flex items-center justify-center text-amber-500"><Shield size={28} /></div>
                                 <div>

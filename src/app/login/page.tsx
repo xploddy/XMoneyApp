@@ -90,7 +90,7 @@ export default function LoginPage() {
 
             <div className="w-full max-w-[440px] space-y-8 relative z-10">
                 <div className="text-center space-y-6">
-                    <div className="inline-flex p-4 rounded-[2rem] bg-white dark:bg-slate-900 shadow-2xl shadow-primary/10 border border-slate-100 dark:border-white/5 group hover:scale-110 transition-all duration-500">
+                    <div className="inline-flex p-4 rounded-[2rem] bg-[var(--card-bg)] shadow-2xl shadow-primary/10 border border-slate-100 dark:border-white/5 group hover:scale-110 transition-all duration-500">
                         <div className="w-14 h-14 bg-gradient-to-br from-primary to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg transform group-hover:rotate-12 transition-all">
                             <Wallet className="text-white w-7 h-7" />
                         </div>

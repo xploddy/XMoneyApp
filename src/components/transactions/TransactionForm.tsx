@@ -89,7 +89,7 @@ export default function TransactionForm({ isOpen, onClose, onSubmit, onDelete, i
 
     return (
         <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center p-0 md:p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300">
-            <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-t-[2.5rem] md:rounded-[2.5rem] p-6 md:p-8 shadow-2xl animate-in slide-in-from-bottom-20 duration-500 border-x border-t md:border border-slate-100 dark:border-slate-800 max-h-[90vh] overflow-y-auto overflow-x-hidden scrollbar-hide">
+            <div className="w-full max-w-lg bg-[var(--card-bg)] rounded-t-[2.5rem] md:rounded-[2.5rem] p-6 md:p-8 shadow-2xl animate-in slide-in-from-bottom-20 duration-500 border-x border-t md:border border-slate-100 dark:border-slate-800 max-h-[90vh] overflow-y-auto overflow-x-hidden scrollbar-hide">
 
                 <div className="flex items-center justify-between mb-8">
                     <div>
@@ -206,13 +206,13 @@ export default function TransactionForm({ isOpen, onClose, onSubmit, onDelete, i
                                             <button
                                                 type="button"
                                                 onClick={() => setInstallments(Math.max(2, installments - 1))}
-                                                className="w-10 h-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl flex items-center justify-center font-black text-slate-500 hover:scale-95 transition shadow-sm"
+                                                className="w-10 h-10 bg-[var(--card-bg)] border border-slate-200 dark:border-slate-700 rounded-xl flex items-center justify-center font-black text-slate-500 hover:scale-95 transition shadow-sm"
                                             >-</button>
                                             <div className="w-12 text-center font-black text-xl text-slate-700 dark:text-white pointer-events-none">{installments}x</div>
                                             <button
                                                 type="button"
                                                 onClick={() => setInstallments(Math.min(60, installments + 1))}
-                                                className="w-10 h-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl flex items-center justify-center font-black text-slate-500 hover:scale-95 transition shadow-sm"
+                                                className="w-10 h-10 bg-[var(--card-bg)] border border-slate-200 dark:border-slate-700 rounded-xl flex items-center justify-center font-black text-slate-500 hover:scale-95 transition shadow-sm"
                                             >+</button>
                                         </div>
                                     </div>
@@ -261,7 +261,7 @@ export default function TransactionForm({ isOpen, onClose, onSubmit, onDelete, i
                 {showDeleteModal && (
                     <div className="absolute inset-0 z-50 flex items-center justify-center p-4">
                         <div className="absolute inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-[2.5rem]" />
-                        <div className="relative w-full max-w-sm bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 rounded-3xl shadow-2xl animate-in zoom-in-95 duration-200">
+                        <div className="relative w-full max-w-sm bg-[var(--card-bg)] border border-slate-100 dark:border-slate-800 p-6 rounded-3xl shadow-2xl animate-in zoom-in-95 duration-200">
                             <div className="text-center mb-6">
                                 <div className="w-14 h-14 bg-rose-50 dark:bg-rose-500/10 text-rose-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
                                     <Trash2 size={28} strokeWidth={2.5} />

@@ -241,7 +241,7 @@ export default function Dashboard() {
 
         <button
           onClick={() => setShowMonthModal(true)}
-          className="flex items-center gap-3 bg-[#161B26] dark:bg-[#161B26] px-6 py-4 rounded-2xl border border-white/5 shadow-lg hover:border-primary/30 transition-all group"
+          className="flex items-center gap-3 light:bg-[#161B26] px-6 py-4 rounded-2xl border border-white/5 shadow-lg hover:border-primary/30 transition-all group"
         >
           <Calendar size={20} className="text-slate-500 group-hover:text-primary transition-colors" />
           <div className="flex flex-col items-start">

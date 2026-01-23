@@ -140,7 +140,7 @@ export default function TransactionsPage() {
 
                 <button
                     onClick={exportToXLSX}
-                    className="flex items-center justify-center gap-3 px-8 py-4 bg-[#161B26] text-white border border-white/5 rounded-2xl font-black transition-all shadow-xl hover:border-emerald-500/50 group"
+                    className="flex items-center justify-center gap-3 px-8 py-4 light:bg-[#161B26] text-white border border-white/5 rounded-2xl font-black transition-all shadow-xl hover:border-emerald-500/50 group"
                 >
                     <Table size={18} className="text-slate-500 group-hover:text-emerald-400" />
                     <span className="text-[11px] tracking-widest uppercase">Exportar para Excel</span>
@@ -156,11 +156,11 @@ export default function TransactionsPage() {
                         placeholder="Buscar..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full bg-[#161B26] border border-white/5 py-4 pl-14 pr-6 rounded-2xl outline-none focus:border-primary/50 transition-all font-bold text-sm text-white placeholder:text-slate-600 shadow-inner"
+                        className="w-full light:bg-[#161B26] border border-white/5 py-4 pl-14 pr-6 rounded-2xl outline-none focus:border-primary/50 transition-all font-bold text-sm text-white placeholder:text-slate-600 shadow-inner"
                     />
                 </div>
 
-                <div className="lg:col-span-4 flex gap-1.5 p-1.5 bg-[#161B26] rounded-2xl border border-white/5 items-center">
+                <div className="lg:col-span-4 flex gap-1.5 p-1.5 light:bg-[#161B26] rounded-2xl border border-white/5 items-center">
                     {[
                         { id: "ALL", label: "Geral" },
                         { id: "INCOME", label: "Entradas" },
@@ -198,7 +198,7 @@ export default function TransactionsPage() {
                                 // Native month input usually allows clear on some browsers, but let's just stick to value.
                             }
                         }}
-                        className="w-full bg-[#161B26] text-white font-black text-xs uppercase tracking-widest py-4 pl-12 pr-4 rounded-2xl border border-white/5 focus:border-primary/50 outline-none transition-all cursor-pointer shadow-inner appearance-none h-full"
+                        className="w-full light:bg-[#161B26] text-white font-black text-xs uppercase tracking-widest py-4 pl-12 pr-4 rounded-2xl border border-white/5 focus:border-primary/50 outline-none transition-all cursor-pointer shadow-inner appearance-none h-full"
                         style={{ colorScheme: "dark" }}
                     />
                 </div>
