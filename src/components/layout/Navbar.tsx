@@ -93,7 +93,9 @@ export default function Navbar({ theme, toggleTheme }: NavbarProps) {
                         </button>
 
                         <button
-                            onClick={() => toggleTheme(isDark ? "light" : "dark")}
+                            onClick={() =>
+                                toggleTheme(isDark ? "light" : "dark")
+                            }
                             className="p-2 rounded-full hover:bg-[var(--card-bg)] transition"
                         >
                             {isDark ? (

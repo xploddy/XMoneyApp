@@ -283,7 +283,7 @@ export default function Dashboard() {
                 <p className="text-xs font-black uppercase tracking-[0.2em]">Aguardando novas movimentações</p>
               </div>
             ) : (
-              currentMonthTransactions.slice(0, 6).map((t) => {
+              currentMonthTransactions.slice(0, 31).map((t) => {
                 const Icon = CATEGORY_ICONS[t.category] || HelpCircle;
                 return (
                   <div
@@ -306,7 +306,7 @@ export default function Dashboard() {
                       </p>
                       <p className={cn(
                         "text-base md:text-xl font-black tracking-tighter leading-none",
-                        t.type === "INCOME" ? "text-success" : "text-white"
+                        t.type === "INCOME" ? "text-success" : "text-red"
                       )}>
                         {t.type === "INCOME" ? "+" : "-"} {t.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                       </p>
@@ -342,7 +342,7 @@ export default function Dashboard() {
             </div>
 
             <div className="space-y-6">
-              {categoryData.slice(0, 4).map((cat: any, idx: number) => (
+              {categoryData.slice(0, 20).map((cat: any, idx: number) => (
                 <div key={cat.name} className="space-y-3">
                   <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-[0.15em]">
                     <span className="text-slate-400">{cat.name}</span>
@@ -361,7 +361,7 @@ export default function Dashboard() {
               ))}
             </div>
 
-            <div className="p-6 bg-slate-950/40 rounded-3xl border border-white/5 flex gap-4 items-center">
+            <div className="p-6 bg-[var(--card-bg)] rounded-3xl border border-white/5 flex gap-4 items-center">
               <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shrink-0">
                 <Zap size={24} />
               </div>
