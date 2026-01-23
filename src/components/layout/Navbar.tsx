@@ -24,7 +24,12 @@ const navItems = [
     { name: "AJUSTES", href: "/settings", icon: Settings },
 ];
 
-export default function Navbar() {
+interface NavbarProps {
+    theme: "light" | "dark";
+    toggleTheme: (newTheme: "light" | "dark") => void;
+}
+
+export default function Navbar({ theme, toggleTheme }: NavbarProps) {
     const pathname = usePathname();
     const router = useRouter();
     const [mobileOpen, setMobileOpen] = useState(false);
@@ -37,19 +42,7 @@ export default function Navbar() {
         router.refresh();
     };
 
-    const toggleTheme = () => {
-        const root = document.documentElement;
-        const isDark = root.classList.contains("dark");
-
-        root.classList.remove("dark", "light");
-        root.classList.add(isDark ? "light" : "dark");
-
-        localStorage.setItem("xmoney_theme", isDark ? "light" : "dark");
-    };
-
-    const isDark =
-        typeof window !== "undefined" &&
-        document.documentElement.classList.contains("dark");
+    const isDark = theme === "dark";
 
     return (
         <>
@@ -100,7 +93,9 @@ export default function Navbar() {
                         </button>
 
                         <button
-                            onClick={toggleTheme}
+                            onClick={() =>
+                                toggleTheme(isDark ? "light" : "dark")
+                            }
                             className="p-2 rounded-full hover:bg-[var(--card-bg)] transition"
                         >
                             {isDark ? (
@@ -175,7 +170,7 @@ export default function Navbar() {
 
                         <div className="border-t border-[var(--card-border)] pt-4 space-y-3">
                             <button
-                                onClick={toggleTheme}
+                                onClick={() => toggleTheme(isDark ? "light" : "dark")}
                                 className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:text-foreground hover:bg-[var(--background)] transition"
                             >
                                 {isDark ? <Sun size={18} /> : <Moon size={18} />}
