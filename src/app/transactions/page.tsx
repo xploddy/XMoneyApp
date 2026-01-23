@@ -199,7 +199,7 @@ export default function TransactionsPage() {
                             }
                         }}
                         className="w-full light:bg-[#161B26] text-white font-black text-xs uppercase tracking-widest py-4 pl-12 pr-4 rounded-2xl border border-white/5 focus:border-primary/50 outline-none transition-all cursor-pointer shadow-inner appearance-none h-full"
-                        style={{ colorScheme: "dark" }}
+                        style={{ colorScheme: "bg-[(var(--color-primary))" }}
                     />
                 </div>
             </div>
@@ -216,7 +216,7 @@ export default function TransactionsPage() {
                             <div
                                 key={t.id}
                                 onClick={() => { setEditingTransaction(t); setIsFormOpen(true); }}
-                                className="premium-card p-4 md:p-6 flex items-center justify-between bg-[#161B26] hover:bg-slate-900 group transition-all cursor-pointer border-white/5"
+                                className="premium-card p-4 md:p-6 flex items-center justify-between bg-[#000000] hover:bg-slate-900 group transition-all cursor-pointer border-white/5"
                             >
                                 <div className="flex items-center gap-4 md:gap-5">
                                     <div className="w-11 h-11 md:w-14 md:h-14 bg-slate-950 rounded-xl md:rounded-[1.25rem] flex items-center justify-center text-slate-500 group-hover:bg-primary/10 group-hover:text-primary transition-all shadow-inner shrink-0">

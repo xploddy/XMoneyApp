@@ -776,48 +776,14 @@ export default function SettingsPage() {
                 {/* APARÊNCIA */}
                 {activeTab === "aparencia" && (
                     <div className="space-y-6 animate-in slide-in-from-bottom-5 duration-500">
-                        <section className="premium-card p-8 rounded-[2.5rem] bg-[var(--card-bg)] border border-slate-200 dark:border-slate-800 space-y-8 shadow-lg">
-                            <div className="flex items-center gap-5">
-                                <div className="w-14 h-14 bg-pink-500/10 rounded-2xl flex items-center justify-center text-pink-500"><Palette size={28} /></div>
-                                <div>
-                                    <h3 className="text-xl font-black text-slate-800 dark:text-white">Aparência</h3>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tema e personalização</p>
-                                </div>
-                            </div>
-
-                            <div className="space-y-4">
-                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] ml-1">Tema do Sistema</label>
-                                <div className="grid grid-cols-3 gap-3">
-                                    {[
-                                        { id: "light", icon: Sun, label: "CLARO", desc: "Modo Dia" },
-                                        { id: "dark", icon: Moon, label: "ESCURO", desc: "Modo Noite" },
-                                        { id: "system", icon: Settings, label: "AUTO", desc: "Sistema" }
-                                    ].map((t) => (
-                                        <button
-                                            key={t.id}
-                                            onClick={() => {
-                                                setTheme(t.id);
-                                                applyTheme(t.id);
-                                            }}
-                                            className={cn(
-                                                "flex flex-col items-center justify-center gap-3 py-6 rounded-2xl font-black text-[8px] uppercase border-2 transition-all",
-                                                theme === t.id
-                                                    ? "bg-primary text-white border-primary shadow-lg shadow-primary/20"
-                                                    : "bg-white dark:bg-slate-950 text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
-                                            )}
-                                        >
-                                            <t.icon size={24} strokeWidth={2.5} />
-                                            <div className="text-center">
-                                                <div className="font-black">{t.label}</div>
-                                                <div className="text-[7px] opacity-70 mt-0.5">{t.desc}</div>
-                                            </div>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
+                        <section className="premium-card p-8 rounded-[2.5rem] bg-[var(--card-bg)] border border-slate-200 dark:border-slate-800 space-y-8 shadow-lg flex items-center justify-center">
+                            <p className="text-slate-500 dark:text-slate-400 font-bold text-center text-sm">
+                                Esta funcionalidade ainda não foi implementada.
+                            </p>
                         </section>
                     </div>
                 )}
+
 
                 {/* DADOS E BACKUP */}
                 {activeTab === "dados" && (

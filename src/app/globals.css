@@ -14,6 +14,14 @@
   --color-surface-soft: #161B26;
 }
 
+html.light {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
 /* Dark Theme (Default) */
 :root.dark {
   --background: #0B0F17;

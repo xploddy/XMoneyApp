@@ -16,8 +16,16 @@ export default function LoginPage() {
     const router = useRouter();
 
     useEffect(() => {
-        setError("");
-    }, [mode]);
+        const root = document.documentElement;
+
+        // força light na tela de login
+        root.classList.remove("dark");
+        root.classList.add("light");
+
+        // opcional: NÃO salva no localStorage
+        // para não sobrescrever a preferência do usuário
+    }, []);
+
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -83,7 +91,7 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-[#020617] flex flex-col items-center justify-center p-6 relative overflow-hidden transition-all duration-700">
+        <div className="min-h-screen bg-slate-50 bg-[var(--card-bg)] flex flex-col items-center justify-center p-6 relative overflow-hidden transition-all duration-700">
             {/* Ambient Background - Gradient Blobs */}
             <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-primary/10 dark:bg-primary/20 rounded-full blur-[120px] animate-pulse" />
             <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] bg-indigo-500/10 dark:bg-indigo-500/10 rounded-full blur-[100px]" />
@@ -104,14 +112,16 @@ export default function LoginPage() {
                 </div>
 
                 <div className="group premium-card p-10 rounded-[3rem] bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] dark:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] border border-white dark:border-white/5 transition-all duration-500 hover:shadow-primary/5">
-                    <div className="flex mb-10 bg-slate-100/50 dark:bg-slate-950/50 p-1.5 rounded-[1.5rem] border border-slate-200/50 dark:border-white/5">
+                    <div className="flex mb-10 bg-slate-100/50 p-1.5 rounded-[1.5rem] border border-slate-200/50">
+
                         <button
                             onClick={() => setMode("login")}
                             className={cn(
                                 "flex-1 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all duration-300",
                                 mode === "login"
-                                    ? "bg-white dark:bg-slate-800 text-primary shadow-xl shadow-black/5 dark:shadow-none scale-100"
-                                    : "text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400"
+                                    ? "bg-white text-primary shadow-xl shadow-black/5 scale-100"
+                                    : "text-slate-400 hover:text-slate-600"
+
                             )}
                         >
                             Login
@@ -121,8 +131,9 @@ export default function LoginPage() {
                             className={cn(
                                 "flex-1 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all duration-300",
                                 mode === "signup"
-                                    ? "bg-white dark:bg-slate-800 text-primary shadow-xl shadow-black/5 dark:shadow-none scale-100"
-                                    : "text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400"
+                                    ? "bg-white text-primary shadow-xl shadow-black/5 scale-100"
+                                    : "text-slate-400 hover:text-slate-600"
+
                             )}
                         >
                             Cadastro
